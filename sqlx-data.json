@@ -1,0 +1,21 @@
+{
+  "db": "PostgreSQL",
+  "f0996b1038662237d54480dcd22e5ba4a87b9908500214d5db242644f17fe089": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT id FROM devices"
+  }
+}

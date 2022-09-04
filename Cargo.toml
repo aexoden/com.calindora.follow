@@ -2,8 +2,14 @@
 name = "com_calindora_follow"
 version = "0.1.0"
 edition = "2021"
+build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 rocket = { version = "0.5.0-rc.2", features = ["json"] }
+rocket_db_pools = { version = "0.1.0-rc.2", features = ["sqlx_postgres"] }
+sqlx = { version = "0.5", features = ["offline", "postgres"] }
+
+[build-dependencies]
+dotenv-build = "0.1"
