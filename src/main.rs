@@ -5,10 +5,15 @@ async fn index() -> impl Responder {
     HttpResponse::Ok().body("Hello world!")
 }
 
+#[get("/health_check")]
+async fn health_check() -> impl Responder {
+    HttpResponse::Ok()
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| App::new().service(index))
-        .bind(("0.0.0.0", 3000))?
+    HttpServer::new(|| App::new().service(index).service(health_check))
+        .bind(("0.0.0.0", 5000))?
         .run()
         .await
 }
