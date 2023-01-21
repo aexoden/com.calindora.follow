@@ -9,6 +9,8 @@ personal use, and is therefore not particularly user friendly.
 
 ## Deployment
 
+This application is intended to be deployed via [Dokku](https://dokku.com).
+
 ## Authors
 
 * Jason Lynch (Aexoden) <jason@calindora.com>
