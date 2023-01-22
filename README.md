@@ -14,3 +14,11 @@ This application is intended to be deployed via [Dokku](https://dokku.com).
 ## Authors
 
 * Jason Lynch (Aexoden) <jason@calindora.com>
+
+## Acknowledgements
+
+Some of the code for this application (especially for the testing infrastructure
+and some of the boilerplate) is derived from code samples in the book
+["Zero to Production in Rust"](https://www.zero2prod.com/) by Luca Palmieri. The
+code samples themselves are available under either an MIT or Apache license at
+<https://github.com/LukeMathWalker/zero-to-production>.
