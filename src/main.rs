@@ -13,5 +13,5 @@ async fn main() -> std::io::Result<()> {
     let listener = TcpListener::bind("0.0.0.0:5000")?;
     tracing::info!("Listening on 0.0.0.0:5000");
 
-    com_calindora_follow::run(listener)?.await
+    com_calindora_follow::server::run(listener)?.await
 }
