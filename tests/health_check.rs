@@ -1,5 +1,21 @@
 use std::net::TcpListener;
 
+use once_cell::sync::Lazy;
+
+use com_calindora_follow::telemetry::{get_subscriber, init_subscriber};
+
+static TRACING: Lazy<()> = Lazy::new(|| {
+    if std::env::var("TEST_LOG").is_ok() {
+        init_subscriber(get_subscriber(
+            "test".into(),
+            "debug".into(),
+            std::io::stdout,
+        ));
+    } else {
+        init_subscriber(get_subscriber("test".into(), "debug".into(), std::io::sink));
+    }
+});
+
 #[actix_web::test]
 async fn health_check_works() {
     let address = run_server();
@@ -16,6 +32,8 @@ async fn health_check_works() {
 }
 
 fn run_server() -> String {
+    Lazy::force(&TRACING);
+
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
     let port = listener.local_addr().unwrap().port();
 
