@@ -1,7 +1,14 @@
 use tracing::{subscriber::set_global_default, Subscriber};
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_log::LogTracer;
-use tracing_subscriber::{fmt::MakeWriter, layer::SubscriberExt, EnvFilter, Registry};
+use tracing_subscriber::{
+    filter::filter_fn,
+    fmt::{format::FmtSpan, MakeWriter},
+    layer::SubscriberExt,
+    EnvFilter, Layer, Registry,
+};
+
+use crate::settings::{get_environment, Environment};
 
 pub fn get_subscriber<Sink>(
     name: String,
@@ -11,15 +18,27 @@ pub fn get_subscriber<Sink>(
 where
     Sink: for<'a> MakeWriter<'a> + Send + Sync + 'static,
 {
+    let environment = get_environment();
+
+    let emit_bunyan = environment == Environment::Production;
+    let emit_pretty = environment == Environment::Development;
+
+    let bunyan_json_layer = JsonStorageLayer.with_filter(filter_fn(move |_| emit_bunyan));
+    let bunyan_formatting_layer =
+        BunyanFormattingLayer::new(name, sink).with_filter(filter_fn(move |_| emit_bunyan));
+
+    let pretty_formatting_layer = tracing_subscriber::fmt::layer()
+        .with_span_events(FmtSpan::CLOSE)
+        .with_filter(filter_fn(move |_| emit_pretty));
+
     let env_filter =
         EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(env_filter));
 
-    let formatting_layer = BunyanFormattingLayer::new(name, sink);
-
     Registry::default()
         .with(env_filter)
-        .with(JsonStorageLayer)
-        .with(formatting_layer)
+        .with(bunyan_json_layer)
+        .with(bunyan_formatting_layer)
+        .with(pretty_formatting_layer)
 }
 
 pub fn init_subscriber(subscriber: impl Subscriber + Send + Sync) {

@@ -9,6 +9,7 @@ pub struct ApplicationSettings {
     pub port: u16,
 }
 
+#[derive(PartialEq)]
 pub enum Environment {
     Development,
     Production,
@@ -38,16 +39,18 @@ impl TryFrom<String> for Environment {
     }
 }
 
+pub fn get_environment() -> Environment {
+    std::env::var("APP_ENVIRONMENT")
+        .unwrap_or_else(|_| "development".into())
+        .try_into()
+        .expect("Failed to parse APP_ENVIRONMENT")
+}
+
 pub fn get_settings() -> Result<Settings, config::ConfigError> {
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
     let settings_path = base_path.join("settings");
 
-    let environment: Environment = std::env::var("APP_ENVIRONMENT")
-        .unwrap_or_else(|_| "development".into())
-        .try_into()
-        .expect("Failed to parse APP_ENVIRONMENT");
-
-    let environment_filename = format!("{}.yaml", environment.as_str());
+    let environment_filename = format!("{}.yaml", get_environment().as_str());
 
     let settings = config::Config::builder()
         .add_source(config::File::from(settings_path.join("base.yaml")))
