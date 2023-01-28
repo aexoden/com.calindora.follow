@@ -1,9 +1,9 @@
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Clone)]
 pub struct Settings {
     pub application: ApplicationSettings,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Clone)]
 pub struct ApplicationSettings {
     pub address: String,
     pub port: u16,
@@ -32,8 +32,7 @@ impl TryFrom<String> for Environment {
             "development" => Ok(Self::Development),
             "production" => Ok(Self::Production),
             other => Err(format!(
-                "{} is not a supported environment. Use either `development` or `production`",
-                other
+                "{other} is not a supported environment. Use either `development` or `production`",
             )),
         }
     }

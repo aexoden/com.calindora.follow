@@ -1,5 +1,4 @@
-use std::net::TcpListener;
-
+use com_calindora_follow::server::Application;
 use com_calindora_follow::settings::get_settings;
 use com_calindora_follow::telemetry::{get_subscriber, init_subscriber};
 
@@ -11,14 +10,8 @@ async fn main() -> std::io::Result<()> {
         std::io::stdout,
     ));
 
-    let settings = get_settings().expect("Failed to read configuration");
-    let address = format!(
-        "{}:{}",
-        settings.application.address, settings.application.port
-    );
+    let settings = get_settings().expect("Failed to read settings");
+    let application = Application::build(settings).await?;
 
-    let listener = TcpListener::bind(&address)?;
-    tracing::info!("Listening on {}", &address);
-
-    com_calindora_follow::server::run(listener)?.await
+    application.run().await
 }

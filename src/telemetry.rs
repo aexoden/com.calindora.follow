@@ -16,7 +16,7 @@ pub fn get_subscriber<Sink>(
     sink: Sink,
 ) -> impl Subscriber + Send + Sync
 where
-    Sink: for<'a> MakeWriter<'a> + Send + Sync + 'static,
+    Sink: for<'a> MakeWriter<'a> + Send + Sync + Copy + 'static,
 {
     let environment = get_environment();
 
@@ -28,6 +28,7 @@ where
         BunyanFormattingLayer::new(name, sink).with_filter(filter_fn(move |_| emit_bunyan));
 
     let pretty_formatting_layer = tracing_subscriber::fmt::layer()
+        .with_writer(sink)
         .with_span_events(FmtSpan::CLOSE)
         .with_filter(filter_fn(move |_| emit_pretty));
 
