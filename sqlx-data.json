@@ -1,0 +1,35 @@
+{
+  "db": "PostgreSQL",
+  "4f45557d7d9f35883dad99e955edd31f3655d178903a043e4199ad8b35253a3e": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "api_key",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "api_secret",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "SELECT * FROM devices WHERE api_key = $1"
+  }
+}

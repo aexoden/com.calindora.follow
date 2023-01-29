@@ -9,7 +9,18 @@ personal use, and is therefore not particularly user friendly.
 
 ## Deployment
 
-This application is intended to be deployed via [Dokku](https://dokku.com).
+This application is intended to be deployed via [Dokku](https://dokku.com). In
+order to successfully deploy, you should set the following environment variables:
+
+```sh
+APP_ENVIRONMENT=production
+DATABASE_URL=<database URL>
+SQLX_OFFLINE=true
+```
+
+Replace ```<database URL>``` with the appropriate URL to a Postgres database.
+The angle brackets should not be included. If using Dokku, DATABASE_URL should
+be set automatically when associating the database to the application.
 
 ## Authors
 

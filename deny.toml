@@ -1,8 +1,18 @@
 [licenses]
+copyleft = "deny"
 allow = [
     "Apache-2.0",
     "BSD-3-Clause",
     "ISC",
     "MIT",
+    "MPL-2.0",
+    "OpenSSL",
     "Unicode-DFS-2016",
+]
+
+[[licenses.clarify]]
+name = "ring"
+expression = "MIT AND ISC AND OpenSSL"
+license-files = [
+    { path = "LICENSE", hash = 3171872035 } # 0xbd0eed23
 ]

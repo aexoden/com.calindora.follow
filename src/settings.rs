@@ -1,12 +1,18 @@
 #[derive(serde::Deserialize, Clone)]
 pub struct Settings {
     pub application: ApplicationSettings,
+    pub database: DatabaseSettings,
 }
 
 #[derive(serde::Deserialize, Clone)]
 pub struct ApplicationSettings {
     pub address: String,
     pub port: u16,
+}
+
+#[derive(serde::Deserialize, Clone)]
+pub struct DatabaseSettings {
+    pub url: String,
 }
 
 #[derive(PartialEq)]
@@ -39,7 +45,7 @@ impl TryFrom<String> for Environment {
 }
 
 pub fn get_environment() -> Environment {
-    std::env::var("APP_ENVIRONMENT")
+    dotenvy::var("APP_ENVIRONMENT")
         .unwrap_or_else(|_| "development".into())
         .try_into()
         .expect("Failed to parse APP_ENVIRONMENT")
@@ -54,6 +60,12 @@ pub fn get_settings() -> Result<Settings, config::ConfigError> {
     let settings = config::Config::builder()
         .add_source(config::File::from(settings_path.join("base.yaml")))
         .add_source(config::File::from(settings_path.join(environment_filename)))
+        .add_source(
+            config::Environment::with_prefix("APP")
+                .prefix_separator("_")
+                .separator("__"),
+        )
+        .set_override_option("database.url", dotenvy::var("DATABASE_URL").ok())?
         .build()?;
 
     settings.try_deserialize::<Settings>()
