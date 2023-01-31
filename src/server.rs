@@ -44,7 +44,7 @@ impl Application {
     }
 }
 
-fn get_db_pool(settings: &DatabaseSettings) -> PgPool {
+pub fn get_db_pool(settings: &DatabaseSettings) -> PgPool {
     PgPoolOptions::new()
         .max_connections(20)
         .connect_lazy(&settings.url)

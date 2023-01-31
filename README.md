@@ -22,6 +22,17 @@ Replace ```<database URL>``` with the appropriate URL to a Postgres database.
 The angle brackets should not be included. If using Dokku, DATABASE_URL should
 be set automatically when associating the database to the application.
 
+## Development
+
+If developing on a local machine, you should either set a ```DATABASE_URL```
+environment variable or create a .env file in the root project directory that
+contains the same variable. The URL should point to a working Postgres server,
+and the database should exist.
+
+If intending to run the test suite, note that the provided database user needs
+to have permission to create databases, as the test suite creates test
+databases. These databases are not currently cleaned up in any way.
+
 ## Authors
 
 * Jason Lynch (Aexoden) <jason@calindora.com>
