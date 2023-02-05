@@ -25,6 +25,45 @@ pub struct TestApplication {
     pub db: PgPool,
 }
 
+impl TestApplication {
+    pub async fn create_random_device(&self) -> Result<(String, String), sqlx::Error> {
+        let id = Uuid::new_v4();
+        let api_key = Uuid::new_v4().to_string();
+        let api_secret = Uuid::new_v4().to_string();
+
+        sqlx::query!(
+            "INSERT INTO devices (id, api_key, api_secret) VALUES ($1, $2, $3)",
+            id,
+            api_key,
+            api_secret
+        )
+        .execute(&self.db)
+        .await?;
+
+        Ok((api_key, api_secret))
+    }
+
+    pub async fn post_report(
+        &self,
+        api_key: &str,
+        signature: &str,
+        body: &str,
+    ) -> reqwest::Response {
+        reqwest::Client::new()
+            .post(&format!(
+                "{}/api/v1/devices/{api_key}/reports",
+                &self.base_url
+            ))
+            .header("Content-Type", "application/json")
+            .header("Accept", "application/json")
+            .header("X-Signature", signature)
+            .body(body.to_string())
+            .send()
+            .await
+            .expect("Failed to execute request")
+    }
+}
+
 pub async fn run_server() -> TestApplication {
     Lazy::force(&TRACING);
 

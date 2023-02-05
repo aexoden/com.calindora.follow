@@ -31,5 +31,258 @@
       }
     },
     "query": "SELECT * FROM devices WHERE api_key = $1"
+  },
+  "63f173efc1117bba234ec1c0c5506005e609b3a7efb1f3e838451c15acdd95fd": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "ALTER TABLE reports DROP COLUMN latitude"
+  },
+  "7bff69c61ddec28a930af25f78c54982791b2b3812024a63bb26253d7cf075f2": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "device_id",
+          "ordinal": 1,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "timestamp",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "submit_timestamp",
+          "ordinal": 3,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "latitude",
+          "ordinal": 4,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "longitude",
+          "ordinal": 5,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "altitude",
+          "ordinal": 6,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "speed",
+          "ordinal": 7,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "bearing",
+          "ordinal": 8,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "accuracy",
+          "ordinal": 9,
+          "type_info": "Numeric"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT * FROM reports"
+  },
+  "b7f1df1bea4060caeaa43e0cfdae6324d865bdabe6e1937bc8ce81de1475305a": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "device_id",
+          "ordinal": 1,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "timestamp",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "submit_timestamp",
+          "ordinal": 3,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "latitude",
+          "ordinal": 4,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "longitude",
+          "ordinal": 5,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "altitude",
+          "ordinal": 6,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "speed",
+          "ordinal": 7,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "bearing",
+          "ordinal": 8,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "accuracy",
+          "ordinal": 9,
+          "type_info": "Numeric"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "SELECT * FROM reports WHERE id = $1"
+  },
+  "c92623b6f8a0e6cbaea00bbcf15973f66471a34e17a866855f2d51a8d355bb0e": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "device_id",
+          "ordinal": 1,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "timestamp",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "submit_timestamp",
+          "ordinal": 3,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "latitude",
+          "ordinal": 4,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "longitude",
+          "ordinal": 5,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "altitude",
+          "ordinal": 6,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "speed",
+          "ordinal": 7,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "bearing",
+          "ordinal": 8,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "accuracy",
+          "ordinal": 9,
+          "type_info": "Numeric"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid",
+          "Timestamptz",
+          "Timestamptz",
+          "Numeric",
+          "Numeric",
+          "Numeric",
+          "Numeric",
+          "Numeric",
+          "Numeric"
+        ]
+      }
+    },
+    "query": "WITH inserted AS (\n                    INSERT INTO reports (id, device_id, timestamp, submit_timestamp, latitude, longitude, altitude, speed, bearing, accuracy)\n                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)\n                    RETURNING *\n                )\n                SELECT * FROM inserted"
+  },
+  "d768f5f483f98c9f61ad25ce8114ced84f2f6796bb5a492dc8db397d2fc455c8": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Varchar",
+          "Varchar"
+        ]
+      }
+    },
+    "query": "INSERT INTO devices (id, api_key, api_secret) VALUES ($1, $2, $3)"
   }
 }
