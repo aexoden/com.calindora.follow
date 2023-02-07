@@ -1,14 +1,18 @@
+use std::cmp;
+
 use actix_web::{
     get,
     http::StatusCode,
     post,
-    web::{Data, Json, Path},
+    web::{Data, Json, Path, Query},
     HttpRequest, HttpResponse, Responder, ResponseError,
 };
 use anyhow::Context;
 use secrecy::ExposeSecret;
+use serde::Deserialize;
 use serde_json::json;
 use sqlx::PgPool;
+use time::OffsetDateTime;
 use uuid::Uuid;
 
 use crate::models::{CreateReportRequest, Device, Report};
@@ -56,6 +60,24 @@ impl ResponseError for ApiError {
     }
 }
 
+#[derive(Deserialize, Debug)]
+enum Ordering {
+    #[serde(alias = "asc")]
+    Ascending,
+    #[serde(alias = "desc")]
+    Descending,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ReportParameters {
+    #[serde(default, with = "time::serde::iso8601::option")]
+    since: Option<OffsetDateTime>,
+    #[serde(default, with = "time::serde::iso8601::option")]
+    until: Option<OffsetDateTime>,
+    limit: Option<usize>,
+    order: Option<Ordering>,
+}
+
 #[get("/api/v1/devices/{api_key}/reports/{id}")]
 #[tracing::instrument(name = "Get report by ID", skip(db, path))]
 pub async fn get_report_by_id(
@@ -79,6 +101,65 @@ pub async fn get_report_by_id(
     } else {
         Err(ApiError::UnknownReportId)
     }
+}
+
+#[get("/api/v1/devices/{api_key}/reports")]
+#[tracing::instrument(name = "Get reports", skip(db, api_key))]
+pub async fn get_reports(
+    db: Data<PgPool>,
+    api_key: Path<String>,
+    parameters: Query<ReportParameters>,
+) -> Result<impl Responder, ApiError> {
+    let device = Device::find_by_api_key(&db, &api_key)
+        .await
+        .context("Failed to retrieve the device associated with the provided API key")?
+        .ok_or(ApiError::UnknownApiKey)?;
+
+    let ordering = match parameters.order {
+        Some(Ordering::Ascending) => Ordering::Ascending,
+        Some(Ordering::Descending) => Ordering::Descending,
+        None => Ordering::Descending,
+    };
+
+    let limit = if let Some(limit) = parameters.limit {
+        cmp::min(500, limit)
+    } else {
+        100
+    };
+
+    let since = if let Some(since) = parameters.since {
+        since
+    } else {
+        OffsetDateTime::from_unix_timestamp(0).unwrap()
+    };
+
+    let until = if let Some(until) = parameters.until {
+        until
+    } else {
+        OffsetDateTime::now_utc()
+    };
+
+    let reports = match ordering {
+        Ordering::Ascending => sqlx::query_as!(
+            Report,
+            r#"SELECT * FROM reports WHERE device_id = $1 AND timestamp > $2 AND timestamp < $3 ORDER BY timestamp ASC LIMIT $4"#,
+            device.id,
+            since,
+            until,
+            limit as i32
+        ).fetch_all(&**db).await,
+        Ordering::Descending => sqlx::query_as!(
+            Report,
+            r#"SELECT * FROM reports WHERE device_id = $1 AND timestamp > $2 AND timestamp < $3 ORDER BY timestamp DESC LIMIT $4"#,
+            device.id,
+            since,
+            until,
+            limit as i32
+        ).fetch_all(&**db).await,
+    }
+    .context("Failed to fetch reports for the device associated with the provided API key")?;
+
+    Ok(HttpResponse::Ok().json(reports))
 }
 
 #[post("/api/v1/devices/{api_key}/reports")]

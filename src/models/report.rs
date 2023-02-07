@@ -15,7 +15,9 @@ pub struct Report {
     pub id: Uuid,
     #[serde(skip_serializing)]
     pub device_id: Uuid,
+    #[serde(with = "time::serde::iso8601")]
     pub timestamp: OffsetDateTime,
+    #[serde(with = "time::serde::iso8601::option")]
     pub submit_timestamp: Option<OffsetDateTime>,
     pub latitude: BigDecimal,
     pub longitude: BigDecimal,

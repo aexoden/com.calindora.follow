@@ -1,5 +1,82 @@
 {
   "db": "PostgreSQL",
+  "113f9b988895f77ddbd2ce410b59ffd221cab207be54b1176eacf3bbde98ddc5": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "device_id",
+          "ordinal": 1,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "timestamp",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "submit_timestamp",
+          "ordinal": 3,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "latitude",
+          "ordinal": 4,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "longitude",
+          "ordinal": 5,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "altitude",
+          "ordinal": 6,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "speed",
+          "ordinal": 7,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "bearing",
+          "ordinal": 8,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "accuracy",
+          "ordinal": 9,
+          "type_info": "Numeric"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Timestamptz",
+          "Timestamptz",
+          "Int8"
+        ]
+      }
+    },
+    "query": "SELECT * FROM reports WHERE device_id = $1 AND timestamp > $2 AND timestamp < $3 ORDER BY timestamp DESC LIMIT $4"
+  },
   "4f45557d7d9f35883dad99e955edd31f3655d178903a043e4199ad8b35253a3e": {
     "describe": {
       "columns": [
@@ -31,6 +108,83 @@
       }
     },
     "query": "SELECT * FROM devices WHERE api_key = $1"
+  },
+  "56c5f11568fad119b3f97f9dc9efca2de84ea14990df1b15f369da879ee578b4": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "device_id",
+          "ordinal": 1,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "timestamp",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "submit_timestamp",
+          "ordinal": 3,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "latitude",
+          "ordinal": 4,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "longitude",
+          "ordinal": 5,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "altitude",
+          "ordinal": 6,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "speed",
+          "ordinal": 7,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "bearing",
+          "ordinal": 8,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "accuracy",
+          "ordinal": 9,
+          "type_info": "Numeric"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Timestamptz",
+          "Timestamptz",
+          "Int8"
+        ]
+      }
+    },
+    "query": "SELECT * FROM reports WHERE device_id = $1 AND timestamp > $2 AND timestamp < $3 ORDER BY timestamp ASC LIMIT $4"
   },
   "63f173efc1117bba234ec1c0c5506005e609b3a7efb1f3e838451c15acdd95fd": {
     "describe": {
