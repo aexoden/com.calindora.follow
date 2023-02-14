@@ -316,3 +316,31 @@ async fn post_report_fails_if_fatal_database_error() {
         "The API did not return a JSON error reponse after a fatal database error",
     )
 }
+
+#[actix_web::test]
+async fn follow_returns_html() {
+    let server = run_server().await;
+
+    let (api_key, _) = server
+        .create_random_device()
+        .await
+        .expect("Failed to create a test device");
+
+    let response = reqwest::Client::new()
+        .get(&format!("{}/follow/{api_key}", &server.base_url))
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    assert_eq!(
+        200,
+        response.status().as_u16(),
+        "The server did not return a 200 for a valid API key",
+    );
+
+    assert_eq!(
+        "text/html; charset=utf-8",
+        response.headers().get("Content-Type").unwrap(),
+        "The server did not return HTML for a valid API key",
+    )
+}

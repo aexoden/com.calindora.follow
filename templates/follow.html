@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Live Following{% endblock %}
+
+{% block stylesheets %}
+        <style type="text/css">
+            html, body {
+                height: 100%;
+            }
+
+            #sidebar {
+                float: left;
+                padding: 1em 0.5% 1em 0.5%;
+                width: 14%;
+            }
+
+            #map {
+                border-left: 1px solid black;
+                float: right;
+                height: 100%;
+                padding-left: 1%;
+                width: 83%;
+            }
+        </style>
+{% endblock %}
+
+{% block body %}
+        <div id="sidebar">
+            <h1>Calindora Follow</h1>
+            <dl>
+                <dt>Last Update Time</dt>
+                <dd id="status_last_update_time"></dd>
+                <dt>Latitude</dt>
+                <dd id="status_latitude"></dd>
+                <dt>Longitude</dt>
+                <dd id="status_longitude"></dd>
+                <dt>Altitude</dt>
+                <dd id="status_altitude"></dd>
+                <dt>Speed</dt>
+                <dd id="status_speed"></dd>
+                <dt>Bearing</dt>
+                <dd id="status_bearing"></dd>
+            </dl>
+        </div>
+        <div id="map"></div>
+{% endblock %}
+
+{% block scripts %}
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+        <script type="text/javascript" src="/static/js/follow.js"></script>
+        <script type="text/javascript">
+            function initMap() {
+                com.calindora.follow.follow().init("/api/v1/devices/{{ device_api_key }}/reports");
+            }
+        </script>
+        <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={{ maps_api_key }}&callback=initMap" async></script>
+{% endblock %}

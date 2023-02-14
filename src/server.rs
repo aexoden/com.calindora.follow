@@ -39,7 +39,7 @@ impl Application {
         tracing::info!("Listening on {}", &address);
         let port = listener.local_addr().unwrap().port();
 
-        let server = run(listener, db_pool)?;
+        let server = run(listener, db_pool, settings)?;
 
         Ok(Self { port, server })
     }
@@ -64,15 +64,16 @@ pub fn get_db_pool(settings: &DatabaseSettings) -> PgPool {
         .connect_lazy_with(options)
 }
 
-fn run(listener: TcpListener, db_pool: PgPool) -> std::io::Result<Server> {
+fn run(listener: TcpListener, db_pool: PgPool, settings: Settings) -> std::io::Result<Server> {
     let db_pool = Data::new(db_pool);
+    let settings = Data::new(settings);
 
     let server = HttpServer::new(move || {
         let json_cfg = JsonConfig::default().error_handler(|err, _| {
             let body = json!({
                 "code": StatusCode::BAD_REQUEST.to_string(),
                 "success": false,
-                "reason": err.to_string()
+                "reason": err.to_string(),
             });
 
             let response = HttpResponse::BadRequest().json(body);
@@ -84,7 +85,7 @@ fn run(listener: TcpListener, db_pool: PgPool) -> std::io::Result<Server> {
                 let body = json!({
                     "code": StatusCode::BAD_REQUEST.to_string(),
                     "success": false,
-                    "reason": err.to_string()
+                    "reason": err.to_string(),
                 });
 
                 let response = HttpResponse::BadRequest().json(body);
@@ -105,12 +106,15 @@ fn run(listener: TcpListener, db_pool: PgPool) -> std::io::Result<Server> {
             .wrap(TracingLogger::default())
             .app_data(json_cfg)
             .app_data(query_cfg)
+            .app_data(db_pool.clone())
+            .app_data(settings.clone())
             .service(crate::routes::index)
+            .service(crate::routes::follow)
             .service(crate::routes::health_check)
             .service(crate::routes::get_report_by_id)
             .service(crate::routes::get_reports)
             .service(crate::routes::post_report)
-            .app_data(db_pool.clone())
+            .service(actix_files::Files::new("/static", "./static"))
     })
     .listen(listener)?
     .run();

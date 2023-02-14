@@ -1,5 +1,6 @@
 application:
   address: "0.0.0.0"
   port: 5000
+  maps_api_key: ""
 database:
   url: "postgres://com_calindora_follow:password@localhost/com_calindora_follow"

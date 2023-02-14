@@ -22,6 +22,10 @@ Replace ```<database URL>``` with the appropriate URL to a Postgres database.
 The angle brackets should not be included. If using Dokku, DATABASE_URL should
 be set automatically when associating the database to the application.
 
+In addition, a valid Google Maps API key should be specified, either via the
+appropriate configuration file in `settings` or the
+`APP_APPLICATION__MAPS_API_KEY` environment variable.
+
 ## Development
 
 If developing on a local machine, you should either set a ```DATABASE_URL```

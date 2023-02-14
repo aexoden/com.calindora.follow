@@ -122,7 +122,7 @@ pub async fn get_reports(
     };
 
     let limit = if let Some(limit) = parameters.limit {
-        cmp::min(500, limit)
+        cmp::min(10000, limit)
     } else {
         100
     };
@@ -163,10 +163,7 @@ pub async fn get_reports(
 }
 
 #[post("/api/v1/devices/{api_key}/reports")]
-#[tracing::instrument(
-    name = "Post report to device",
-    skip(db, request, api_key, report_request)
-)]
+#[tracing::instrument(name = "Post report to device", skip(db, request, api_key))]
 pub async fn post_report(
     db: Data<PgPool>,
     request: HttpRequest,
