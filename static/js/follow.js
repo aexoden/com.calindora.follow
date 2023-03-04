@@ -20,6 +20,7 @@ com.calindora.follow.follow = function()
 
     const LIMIT = 86400 * 1000 * 2;
     const TRIP_AGE_THRESHOLD = 120 * 1000;
+    const DELAYED_THRESHOLD = 15 * 1000;
 
     const TRIP_COLORS = [
         "#0066CC",
@@ -189,7 +190,19 @@ com.calindora.follow.follow = function()
             if (this.#trips.length > 0) {
                 let report = this.#trips[this.#trips.length -1].last_report;
 
-                document.getElementById("status_last_update_time").innerHTML = report.timestamp.toLocaleString();
+                let delay = "";
+
+                if (report.submit_timestamp - report.timestamp > DELAYED_THRESHOLD) {
+                    let seconds = (report.submit_timestamp - report.timestamp) / 1000;
+
+                    if (seconds > 60) {
+                        delay = "<br>(delayed " + Math.floor(seconds / 60) + " minutes)";
+                    } else {
+                        delay = "<br>(delayed " + Math.floor(seconds) + " seconds)";
+                    }
+                }
+
+                document.getElementById("status_last_update_time").innerHTML = report.timestamp.toLocaleString() + delay;
                 document.getElementById("status_latitude").innerHTML = Math.round(report.latitude * 100000) / 100000 + "&#176;";
                 document.getElementById("status_longitude").innerHTML = Math.round(report.longitude * 100000) / 100000 + "&#176;";
                 document.getElementById("status_altitude").innerHTML = Math.round(report.altitude * 3.2808399) + " ft";
