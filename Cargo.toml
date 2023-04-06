@@ -10,24 +10,24 @@ build = "build.rs"
 actix-files = "0.6.2"
 actix-web = "4"
 actix-web-validator = "5.0.1"
-anyhow = "1.0.69"
+anyhow = "1.0.70"
 bigdecimal = { version = "0.3.0", features = ["serde"] }
 config = "0.13.3"
-dotenvy = "0.15.6"
-futures = "0.3.26"
+dotenvy = "0.15.7"
+futures = "0.3.27"
 hex = "0.4.3"
 hmac = "0.12.1"
-once_cell = "1.17.0"
+once_cell = "1.17.1"
 secrecy = { version = "0.8.0", features = ["serde"] }
-serde = { version = "1.0.152", features = ["serde_derive"] }
-serde_json = "1.0.92"
+serde = { version = "1.0.159", features = ["serde_derive"] }
+serde_json = "1.0.95"
 sha2 = "0.10.6"
-sqlx = { version = "0.6.2", features = ["bigdecimal", "offline", "postgres", "runtime-actix-rustls", "time", "uuid"] }
-tera = "1.17.1"
-thiserror = "1.0.38"
-time = { version = "0.3.17", features = ["serde-human-readable", "macros"] }
+sqlx = { version = "0.6.3", features = ["bigdecimal", "offline", "postgres", "runtime-actix-rustls", "time", "uuid"] }
+tera = "1.18.1"
+thiserror = "1.0.40"
+time = { version = "0.3.20", features = ["serde-human-readable", "macros"] }
 tracing = { version = "0.1.37", features = ["log"] }
-tracing-actix-web = "0.7.2"
+tracing-actix-web = "0.7.3"
 tracing-bunyan-formatter = "0.3.6"
 tracing-log = "0.1.3"
 tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }
@@ -35,4 +35,4 @@ uuid = { version = "1.3.0", features = ["serde"] }
 validator = { version = "0.16.0", features = ["derive"] }
 
 [dev-dependencies]
-reqwest = "0.11.14"
+reqwest = "0.11.16"
