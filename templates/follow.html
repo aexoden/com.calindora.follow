@@ -9,17 +9,68 @@
             }
 
             #sidebar {
-                float: left;
-                padding: 1em 0.5% 1em 0.5%;
-                width: 14%;
+                padding: 0.5%;
             }
 
-            #map {
-                border-left: 1px solid black;
-                float: right;
-                height: 100%;
-                padding-left: 1%;
-                width: 83%;
+            @media only screen and (max-width: 1023px) {
+                body {
+                    display: flex;
+                    flex-direction: column;
+                    min-height: 100%;
+                }
+
+                #sidebar {
+                    flex-grow: 0;
+                }
+
+                #map {
+                    border-top: 1px solid black;
+                    flex-grow: 1;
+                    padding-top: 1%;
+                }
+
+                #status {
+                    margin-bottom: 8px;
+                }
+
+                #status dt {
+                    float: left;
+                    width: 140px;
+                    clear: left;
+                    text-align: right;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+
+                #status dd {
+                    margin-bottom: 4px;
+                    margin-left: 160px;
+                }
+
+                #status dd:before, #status dd:after {
+                    display: table;
+                    content: " ";
+                }
+
+                #status dd:after {
+                    clear: both;
+                }
+            }
+
+            @media only screen and (min-width: 1024px) {
+                #sidebar {
+                    float: left;
+                    width: 14%;
+                }
+
+                #map {
+                    border-left: 1px solid black;
+                    float: right;
+                    height: 100%;
+                    padding-left: 1%;
+                    width: 83%;
+                }
             }
         </style>
 {% endblock %}
@@ -27,7 +78,7 @@
 {% block body %}
         <div id="sidebar">
             <h1>Calindora Follow</h1>
-            <dl>
+            <dl id="status">
                 <dt>Last Update Time</dt>
                 <dd id="status_last_update_time"></dd>
                 <dt>Latitude</dt>
