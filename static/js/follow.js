@@ -196,9 +196,22 @@ com.calindora.follow.follow = function()
                     let seconds = (report.submit_timestamp - report.timestamp) / 1000;
 
                     if (seconds > 60) {
-                        delay = "<br>(delayed " + Math.floor(seconds / 60) + " minutes)";
+                        let minutes = Math.floor(seconds / 60);
+                        let suffix = "";
+
+                        if (minutes != 1) {
+                            suffix = "s";
+                        }
+
+                        delay = "<br>(delayed " + Math.floor(seconds / 60) + " minute" + suffix + ")";
                     } else {
-                        delay = "<br>(delayed " + Math.floor(seconds) + " seconds)";
+                        let suffix = "";
+
+                        if (Math.floor(seconds) != 1) {
+                            suffix = "s";
+                        }
+
+                        delay = "<br>(delayed " + Math.floor(seconds) + " second" + suffix + ")";
                     }
                 }
 
