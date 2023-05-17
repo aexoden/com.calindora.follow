@@ -81,6 +81,10 @@ com.calindora.follow.follow = function()
 
             this.#map = new google.maps.Map(document.getElementById("map"), mapOptions);
 
+            this.#map.addListener("dragstart", () => {
+                document.getElementById("switch_auto_center").checked = false;
+            });
+
             this.#marker = new google.maps.Marker({
                 position: position,
                 map: this.#map,
@@ -95,6 +99,8 @@ com.calindora.follow.follow = function()
                 strokeColor: "#006699",
                 strokeOpacity: 0.9,
             });
+
+            document.getElementById("switch_auto_center").addEventListener("change", this.updateMarker.bind(this));
 
             this.onUpdate();
             this.#updateIntervalHandle = setInterval(this.onUpdate.bind(this), 5000);
@@ -178,7 +184,10 @@ com.calindora.follow.follow = function()
                 let report = this.#trips[this.#trips.length - 1].last_report;
 
                 let position = new google.maps.LatLng(report.latitude, report.longitude);
-                this.#map.setCenter(position);
+
+                if (document.getElementById("switch_auto_center").checked) {
+                    this.#map.panTo(position);
+                }
 
                 this.#marker.setPosition(position);
                 this.#accuracyCircle.setCenter(position);
