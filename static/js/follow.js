@@ -21,6 +21,7 @@ com.calindora.follow.follow = function()
     const LIMIT = 86400 * 1000 * 2;
     const TRIP_AGE_THRESHOLD = 120 * 1000;
     const DELAYED_THRESHOLD = 15 * 1000;
+    const REPORT_LIMIT = 1000;
 
     const TRIP_COLORS = [
         "#0066CC",
@@ -61,6 +62,7 @@ com.calindora.follow.follow = function()
 
     const Follow = class {
         #accuracyCircle = null;
+        #immediateUpdate = false;
         #map = null;
         #marker = null;
         #trips = [];
@@ -119,7 +121,7 @@ com.calindora.follow.follow = function()
 
             let parameters = {};
             parameters.order = "asc";
-            parameters.limit = 10000;
+            parameters.limit = REPORT_LIMIT;
 
             if (this.#trips.length == 0 || this.#trips[this.#trips.length - 1].length == 0) {
                 parameters.since = new Date(new Date().getTime() - LIMIT).toISOString();
@@ -136,6 +138,10 @@ com.calindora.follow.follow = function()
                 }.bind(this),
             ).always(function(_) {
                 this.#updating = false;
+
+                if (this.#immediateUpdate) {
+                    this.onUpdate();
+                }
             }.bind(this));
         }
 
@@ -177,6 +183,10 @@ com.calindora.follow.follow = function()
             this.updateMarker();
             this.updateStatus();
             this.prune();
+
+            if (reports.length == REPORT_LIMIT) {
+                this.#immediateUpdate = true;
+            }
         }
 
         updateMarker() {
