@@ -55,9 +55,9 @@ jobs:
         ports:
           - 5432:5432
     env:
-      SQLX_VERSION: 0.6.2
+      SQLX_VERSION: 0.7.0
       SQLX_FEATURES: "rustls,postgres"
-      SQLX_OFFLINE: 1
+      SQLX_OFFLINE: true
       DATABASE_URL: "postgres://postgres:password@localhost/postgres"
     steps:
       - uses: actions/checkout@v3

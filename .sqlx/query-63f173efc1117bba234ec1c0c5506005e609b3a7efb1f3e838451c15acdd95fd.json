@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "ALTER TABLE reports DROP COLUMN latitude",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "63f173efc1117bba234ec1c0c5506005e609b3a7efb1f3e838451c15acdd95fd"
+}

@@ -54,10 +54,10 @@ impl Application {
 }
 
 pub fn get_db_pool(settings: &DatabaseSettings) -> PgPool {
-    let mut options =
+    let options =
         PgConnectOptions::from_str(&settings.url).expect("Invalid configured database URL");
 
-    options.log_statements(tracing::log::LevelFilter::Trace);
+    let options = options.log_statements(tracing::log::LevelFilter::Trace);
 
     PgPoolOptions::new()
         .max_connections(20)

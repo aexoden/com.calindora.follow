@@ -1,0 +1,79 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM reports WHERE device_id = $1 AND timestamp > $2 AND timestamp < $3 ORDER BY timestamp DESC LIMIT $4",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "device_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "timestamp",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 3,
+        "name": "submit_timestamp",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 4,
+        "name": "latitude",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 5,
+        "name": "longitude",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 6,
+        "name": "altitude",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 7,
+        "name": "speed",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 8,
+        "name": "bearing",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 9,
+        "name": "accuracy",
+        "type_info": "Numeric"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz",
+        "Timestamptz",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "113f9b988895f77ddbd2ce410b59ffd221cab207be54b1176eacf3bbde98ddc5"
+}

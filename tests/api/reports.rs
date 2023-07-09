@@ -149,7 +149,7 @@ async fn post_report_returns_400_for_invalid_report() {
 
     let test_cases = vec![
         (
-            ReportRequest::new("2022-12-15T15:17:44+00", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            ReportRequest::new("2022-12R15T15:17:44+00", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
             "incorrectly formatted date",
         ),
         (
