@@ -184,9 +184,7 @@ com.calindora.follow.follow = function()
             this.updateStatus();
             this.prune();
 
-            if (reports.length == REPORT_LIMIT) {
-                this.#immediateUpdate = true;
-            }
+            this.#immediateUpdate = reports.length == REPORT_LIMIT;
         }
 
         updateMarker() {
