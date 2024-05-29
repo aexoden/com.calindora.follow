@@ -32,7 +32,7 @@ tracing-bunyan-formatter = "0.3.6"
 tracing-log = "0.2.0"
 tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }
 uuid = { version = "1.8.0", features = ["serde"] }
-validator = { version = "0.16.0", features = ["derive"] }
+validator = { version = "0.18.1", features = ["derive"] }
 
 [dev-dependencies]
 reqwest = "0.12.4"
