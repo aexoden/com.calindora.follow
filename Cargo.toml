@@ -11,7 +11,7 @@ actix-files = "0.6.5"
 actix-web = "4"
 actix-web-validator = "5.0.1"
 anyhow = "1.0.86"
-bigdecimal = { version = "0.3.1", features = ["serde"] }
+bigdecimal = { version = "0.4.3", features = ["serde"] }
 config = { git = "https://github.com/mehcode/config-rs.git", rev = "e3c1d0b452639478662a44f15ef6d5b6d969bf9b" }
 dotenvy = "0.15.7"
 futures = "0.3.30"
