@@ -40,16 +40,16 @@ impl Report {
 pub struct CreateReportRequest {
     #[serde(with = "time::serde::iso8601")]
     pub timestamp: OffsetDateTime,
-    #[validate(custom = "validate_latitude")]
+    #[validate(custom(function = "validate_latitude"))]
     pub latitude: BigDecimal,
-    #[validate(custom = "validate_longitude")]
+    #[validate(custom(function = "validate_longitude"))]
     pub longitude: BigDecimal,
     pub altitude: BigDecimal,
-    #[validate(custom = "validate_positive")]
+    #[validate(custom(function = "validate_positive"))]
     pub speed: BigDecimal,
-    #[validate(custom = "validate_bearing")]
+    #[validate(custom(function = "validate_bearing"))]
     pub bearing: BigDecimal,
-    #[validate(custom = "validate_positive")]
+    #[validate(custom(function = "validate_positive"))]
     pub accuracy: BigDecimal,
 }
 

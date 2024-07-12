@@ -18,6 +18,7 @@ static TRACING: Lazy<()> = Lazy::new(|| {
     }
 });
 
+#[allow(dead_code)]
 pub struct TestApplication {
     pub base_url: String,
     pub port: u16,
