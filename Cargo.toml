@@ -9,7 +9,7 @@ build = "build.rs"
 [dependencies]
 actix-files = "0.6.6"
 actix-web = "4"
-actix-web-validator = "5.0.1"
+actix-web-validator = "6.0.0"
 anyhow = "1.0.86"
 bigdecimal = { version = "0.3.1", features = ["serde"] }
 config = { git = "https://github.com/mehcode/config-rs.git", rev = "e3c1d0b452639478662a44f15ef6d5b6d969bf9b" }
@@ -32,7 +32,7 @@ tracing-bunyan-formatter = "0.3.6"
 tracing-log = "0.2.0"
 tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }
 uuid = { version = "1.10.0", features = ["serde"] }
-validator = { version = "0.16.0", features = ["derive"] }
+validator = { version = "0.18.1", features = ["derive"] }
 
 [dev-dependencies]
 reqwest = "0.12.5"
