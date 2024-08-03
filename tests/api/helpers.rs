@@ -76,7 +76,7 @@ pub async fn run_server() -> TestApplication {
         settings.application.address = "127.0.0.1".to_string();
         settings.application.port = 0;
         settings.database.url = format!(
-            "postgres://postgres:password@localhost/com_calindora_follow-test-{database_name}"
+            "postgres://postgres:password@localhost/com_calindora_follow_test_{database_name}"
         );
 
         settings
