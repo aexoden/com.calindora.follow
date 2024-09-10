@@ -51,7 +51,7 @@ impl TestApplication {
         body: &str,
     ) -> reqwest::Response {
         reqwest::Client::new()
-            .post(&format!(
+            .post(format!(
                 "{}/api/v1/devices/{api_key}/reports",
                 &self.base_url
             ))

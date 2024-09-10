@@ -327,7 +327,7 @@ async fn follow_returns_html() {
         .expect("Failed to create a test device");
 
     let response = reqwest::Client::new()
-        .get(&format!("{}/follow/{api_key}", &server.base_url))
+        .get(format!("{}/follow/{api_key}", &server.base_url))
         .send()
         .await
         .expect("Failed to execute request");
