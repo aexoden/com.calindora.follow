@@ -10,7 +10,7 @@ build = "build.rs"
 actix-files = "0.6.6"
 actix-web = "4"
 actix-web-validator = "6.0.0"
-anyhow = "1.0.92"
+anyhow = "1.0.93"
 bigdecimal = { version = "0.4.6", features = ["serde"] }
 config = { git = "https://github.com/mehcode/config-rs.git", rev = "e3c1d0b452639478662a44f15ef6d5b6d969bf9b" }
 dotenvy = "0.15.7"
