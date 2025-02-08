@@ -5,11 +5,5 @@
     ],
     "lockFileMaintenance": {
         "enabled": true
-    },
-    "packageRules": [
-        {
-            "groupName": "Minor and patch dependency updates",
-            "matchUpdateTypes": ["minor", "patch"]
-        }
-    ]
+    }
 }
