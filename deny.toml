@@ -21,6 +21,5 @@ license-files = [
 [advisories]
 ignore = [
     "RUSTSEC-2024-0370", # actix-web-validator
-    "RUSTSEC-2024-0402", # various things require hashbrown
     "RUSTSEC-2024-0421", # actix-web-validator
 ]
