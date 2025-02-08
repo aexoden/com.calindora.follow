@@ -10,6 +10,10 @@
         {
             "groupName": "Minor and patch dependency updates",
             "matchUpdateTypes": ["minor", "patch"]
+        },
+        {
+            "matchPackageNames": ["validator"],
+            "allowedVersions": "<0.19"
         }
     ]
 }
