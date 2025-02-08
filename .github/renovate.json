@@ -3,6 +3,9 @@
     "extends": [
         "config:best-practices"
     ],
+    "lockFileMaintenance": {
+        "enabled": true
+    },
     "packageRules": [
         {
             "groupName": "Minor and patch dependency updates",
