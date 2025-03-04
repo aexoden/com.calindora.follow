@@ -1,14 +1,14 @@
-use tracing::{subscriber::set_global_default, Subscriber};
+use tracing::{Subscriber, subscriber::set_global_default};
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_log::LogTracer;
 use tracing_subscriber::{
-    filter::filter_fn,
-    fmt::{format::FmtSpan, MakeWriter},
-    layer::SubscriberExt,
     EnvFilter, Layer, Registry,
+    filter::filter_fn,
+    fmt::{MakeWriter, format::FmtSpan},
+    layer::SubscriberExt,
 };
 
-use crate::settings::{get_environment, Environment};
+use crate::settings::{Environment, get_environment};
 
 pub fn get_subscriber<Sink>(
     name: String,

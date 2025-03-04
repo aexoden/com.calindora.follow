@@ -1,8 +1,7 @@
 use actix_web::{
-    get,
-    http::{header::ContentType, StatusCode},
+    HttpResponse, Responder, ResponseError, get,
+    http::{StatusCode, header::ContentType},
     web::{Data, Path},
-    HttpResponse, Responder, ResponseError,
 };
 use anyhow::Context;
 use sqlx::PgPool;
@@ -10,7 +9,7 @@ use tracing::error;
 
 use crate::models::Device;
 use crate::settings::Settings;
-use crate::util::{error_chain_fmt, TEMPLATES};
+use crate::util::{TEMPLATES, error_chain_fmt};
 
 #[derive(thiserror::Error)]
 pub enum WebError {

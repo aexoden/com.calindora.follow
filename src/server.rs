@@ -2,14 +2,14 @@ use std::net::TcpListener;
 use std::str::FromStr;
 
 use actix_web::{
-    dev::Server, error, http::StatusCode, web::Data, web::QueryConfig, App, HttpResponse,
-    HttpServer,
+    App, HttpResponse, HttpServer, dev::Server, error, http::StatusCode, web::Data,
+    web::QueryConfig,
 };
 use actix_web_validator::JsonConfig;
 use serde_json::json;
 use sqlx::{
-    postgres::{PgConnectOptions, PgPoolOptions},
     ConnectOptions, PgPool,
+    postgres::{PgConnectOptions, PgPoolOptions},
 };
 use tracing_actix_web::TracingLogger;
 

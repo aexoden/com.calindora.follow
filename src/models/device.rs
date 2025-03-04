@@ -1,5 +1,5 @@
 use secrecy::SecretString;
-use sqlx::{types::Uuid, PgPool};
+use sqlx::{PgPool, types::Uuid};
 
 #[derive(serde::Serialize)]
 pub struct Device {

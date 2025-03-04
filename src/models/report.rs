@@ -4,7 +4,7 @@ use bigdecimal::BigDecimal;
 use hmac::{Hmac, Mac};
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
-use sqlx::{types::Uuid, PgPool};
+use sqlx::{PgPool, types::Uuid};
 use time::OffsetDateTime;
 use validator::{Validate, ValidationError};
 

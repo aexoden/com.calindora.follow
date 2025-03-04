@@ -1,9 +1,9 @@
 use once_cell::sync::Lazy;
-use sqlx::{migrate::MigrateDatabase, postgres::PgPoolOptions, PgPool};
+use sqlx::{PgPool, migrate::MigrateDatabase, postgres::PgPoolOptions};
 use uuid::Uuid;
 
-use com_calindora_follow::server::{get_db_pool, Application};
-use com_calindora_follow::settings::{get_settings, DatabaseSettings, Settings};
+use com_calindora_follow::server::{Application, get_db_pool};
+use com_calindora_follow::settings::{DatabaseSettings, Settings, get_settings};
 use com_calindora_follow::telemetry::{get_subscriber, init_subscriber};
 
 static TRACING: Lazy<()> = Lazy::new(|| {
