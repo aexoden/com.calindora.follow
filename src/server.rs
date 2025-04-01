@@ -1,8 +1,9 @@
 use std::net::TcpListener;
 use std::str::FromStr;
 
+use actix_cors::Cors;
 use actix_web::{
-    App, HttpResponse, HttpServer, dev::Server, error, http::StatusCode, web::Data,
+    App, HttpResponse, HttpServer, dev::Server, error, http::StatusCode, http::header, web::Data,
     web::QueryConfig,
 };
 use actix_web_validator::JsonConfig;
@@ -103,6 +104,17 @@ fn run(listener: TcpListener, db_pool: PgPool, settings: Settings) -> std::io::R
         });
 
         App::new()
+            .wrap(
+                Cors::default()
+                    .allowed_origin("http://localhost:5173")
+                    .allowed_methods(vec!["GET", "POST"])
+                    .allowed_headers(vec![
+                        header::AUTHORIZATION,
+                        header::ACCEPT,
+                        header::CONTENT_TYPE,
+                    ])
+                    .max_age(3600),
+            )
             .wrap(TracingLogger::default())
             .app_data(json_cfg)
             .app_data(query_cfg)
