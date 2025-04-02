@@ -149,56 +149,71 @@ export default function FollowPage() {
     // If device doesn't exist or there's a device error.
     if (deviceExists === false || deviceError) {
         return (
-            <LoadingError
-                isLoading={isDeviceLoading}
-                error={deviceError ?? new Error("Device not found")}
-                onRetry={handleDeviceRetry}
-                errorTitle="Device Not Found"
-                errorMessage={`We couldn't find the device with key "${deviceKey ?? ""}". Please check the key and try again.`}
-            >
-                <div />
-            </LoadingError>
+            <>
+                <title>Device Not Found « Calindora Follow</title>
+                <LoadingError
+                    isLoading={isDeviceLoading}
+                    error={deviceError ?? new Error("Device not found")}
+                    onRetry={handleDeviceRetry}
+                    errorTitle="Device Not Found"
+                    errorMessage={`We couldn't find the device with key "${deviceKey ?? ""}". Please check the key and try again.`}
+                >
+                    <div />
+                </LoadingError>
+            </>
         );
     }
 
     // If there's an error loading initial data.
     if (initialDataError) {
         return (
-            <LoadingError
-                isLoading={false}
-                error={initialDataError}
-                onRetry={handleInitialDataRetry}
-                errorTitle="Error Loading Data"
-                errorMessage="We encountered a problem loading the location data. Please try again."
-            >
-                <div />
-            </LoadingError>
+            <>
+                <title>Error Loading Data « Calindora Follow</title>
+                <LoadingError
+                    isLoading={false}
+                    error={initialDataError}
+                    onRetry={handleInitialDataRetry}
+                    errorTitle="Error Loading Data"
+                    errorMessage="We encountered a problem loading the location data. Please try again."
+                >
+                    <div />
+                </LoadingError>
+            </>
         );
     }
 
     // Main UI
     return (
-        <LoadingError
-            isLoading={isDeviceLoading || isInitialDataLoading}
-            error={null}
-            loadingMessage="Loading location data..."
-        >
-            <div className="flex h-full flex-col md:flex-row">
-                {/* Sidebar for small screens */}
-                <div className="md:hidden">
-                    <StatusPanel className="m-2" />
-                </div>
+        <>
+            <title>{`Following ${deviceKey ? deviceKey.toString() : ""} « Calindora Follow`}</title>
+            <LoadingError
+                isLoading={isDeviceLoading || isInitialDataLoading}
+                error={null}
+                loadingMessage="Loading location data..."
+            >
+                <div className="flex h-full flex-col md:flex-row">
+                    {/* Mobile sidebar */}
+                    <div className="md:hidden">
+                        <StatusPanel
+                            className="m-2"
+                            isMobile={true}
+                        />
+                    </div>
 
-                {/* Desktop sidebar */}
-                <div className="hidden p-2 md:block md:w-1/5 lg:w-1/6">
-                    <StatusPanel className="h-full" />
-                </div>
+                    {/* Desktop sidebar */}
+                    <div className="hidden p-2 md:block md:w-1/4 lg:w-1/5">
+                        <StatusPanel
+                            className="h-full"
+                            isMobile={false}
+                        />
+                    </div>
 
-                {/* Map container */}
-                <div className="h-full flex-grow md:w-4/5 lg:w-5/6">
-                    <FollowMap />
+                    {/* Map container */}
+                    <div className="h-full flex-grow md:w-3/4 lg:w-4/5">
+                        <FollowMap />
+                    </div>
                 </div>
-            </div>
-        </LoadingError>
+            </LoadingError>
+        </>
     );
 }
