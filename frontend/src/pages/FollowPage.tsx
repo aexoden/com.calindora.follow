@@ -1,5 +1,5 @@
 /* eslint-disable sort-keys */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import useSWR from "swr";
 import { apiService, Report, ReportParams } from "../services/api";
@@ -22,17 +22,30 @@ export default function FollowPage() {
         new Date(new Date().getTime() - INITIAL_DATA_DURATION).toISOString(),
     );
     const [isComplete, setIsComplete] = useState(false);
+    const [isRefetching, setIsRefetching] = useState(false);
     const navigate = useNavigate();
-    const { addReports, clearReports, pruneReports, setPruneThreshold } = useFollowStore();
+    const { addReports, clearReports, pruneReports, pruneThreshold, setPruneThreshold, shouldRefetch } =
+        useFollowStore();
     const { addError } = useError();
+
+    const calculateHistoricalSince = useCallback(() => {
+        return new Date(new Date().getTime() - pruneThreshold).toISOString();
+    }, [pruneThreshold]);
+
+    const firstRenderRef = useRef(true);
+    const prevDeviceKeyRef = useRef<string | undefined>(deviceKey);
 
     // Clear reports when component mounts or deviceKey changes
     useEffect(() => {
-        clearReports();
-        setIsComplete(false);
-        setCurrentSince(new Date(new Date().getTime() - INITIAL_DATA_DURATION).toISOString());
-        setPruneThreshold(INITIAL_DATA_DURATION);
-    }, [clearReports, deviceKey, setPruneThreshold]);
+        if (firstRenderRef.current || prevDeviceKeyRef.current !== deviceKey) {
+            clearReports();
+            setIsComplete(false);
+            setCurrentSince(calculateHistoricalSince());
+
+            firstRenderRef.current = false;
+            prevDeviceKeyRef.current = deviceKey;
+        }
+    }, [clearReports, deviceKey, calculateHistoricalSince]);
 
     // Set up automatic pruning on an interval
     useEffect(() => {
@@ -62,6 +75,15 @@ export default function FollowPage() {
             throw error;
         }
     });
+
+    // Listen for prune threshold changes to trigger refetches when increased
+    useEffect(() => {
+        if (shouldRefetch() && deviceExists && isComplete) {
+            setIsRefetching(true);
+            setCurrentSince(calculateHistoricalSince());
+            setIsComplete(false);
+        }
+    }, [deviceExists, isComplete, shouldRefetch, calculateHistoricalSince]);
 
     // Load initial data
     const {
@@ -103,13 +125,23 @@ export default function FollowPage() {
             // Only mark as complete if we got fewer reports than the limit.
             if (initialReports.length < REPORT_LIMIT) {
                 setIsComplete(true);
+
+                if (isRefetching) {
+                    setIsRefetching(false);
+                    setPruneThreshold(pruneThreshold);
+                }
             }
 
             setCurrentSince(initialReports[initialReports.length - 1].timestamp);
         } else if (initialReports && initialReports.length === 0) {
             setIsComplete(true);
+
+            if (isRefetching) {
+                setIsRefetching(false);
+                setPruneThreshold(pruneThreshold);
+            }
         }
-    }, [addReports, initialReports]);
+    }, [addReports, initialReports, isRefetching, pruneThreshold, setPruneThreshold]);
 
     // Real-time polling for new data
     const { data: polledReports } = useSWR<Report[], Error>(
@@ -201,9 +233,9 @@ export default function FollowPage() {
         <>
             <title>{`Following ${deviceKey ? deviceKey.toString() : ""} « Calindora Follow`}</title>
             <LoadingError
-                isLoading={isDeviceLoading || isInitialDataLoading}
+                isLoading={isDeviceLoading || isInitialDataLoading || isRefetching}
                 error={null}
-                loadingMessage="Loading location data..."
+                loadingMessage={isRefetching ? "Loading additional historical data..." : "Loading location data..."}
             >
                 <div className="flex h-full flex-col md:flex-row">
                     {/* Mobile sidebar */}

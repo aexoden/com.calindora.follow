@@ -49,7 +49,7 @@ function FollowMap({ className = "" }: FollowMapProps) {
     });
 
     const [map, setMap] = useState<google.maps.Map | null>(null);
-    const { trips, lastReport, autoCenter, colorMode } = useFollowStore();
+    const { trips, lastReport, autoCenter, colorMode, pruneThreshold } = useFollowStore();
 
     const onLoad = useCallback((map: google.maps.Map) => {
         setMap(map);
@@ -88,7 +88,7 @@ function FollowMap({ className = "" }: FollowMapProps) {
                     case "time": {
                         // Color gradient: #0066CC (oldest) to #9966CC (middle) to #FF6666 (red)
                         const reportTime = new Date(report.timestamp).getTime();
-                        const ageRatio = Math.max(0, Math.min(1, (now - reportTime) / (86400 * 1000 * 2)));
+                        const ageRatio = Math.max(0, Math.min(1, (now - reportTime) / pruneThreshold));
 
                         if (ageRatio < 0.5) {
                             const interpolatedColor = interpolateColor(
@@ -188,7 +188,7 @@ function FollowMap({ className = "" }: FollowMapProps) {
 
             return paths;
         },
-        [colorMode],
+        [colorMode, pruneThreshold],
     );
 
     // Memoize path styles

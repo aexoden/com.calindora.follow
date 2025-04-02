@@ -1,8 +1,9 @@
 import { memo, useMemo, useState } from "react";
 import { formatDistance } from "date-fns";
-import { useFollowStore, ColorMode } from "../store/followStore";
+import { useFollowStore, ColorMode, DEFAULT_PRUNE_THRESHOLD } from "../store/followStore";
 import { Switch } from "@headlessui/react";
 import {
+    MdAccessTime,
     MdChevronRight,
     MdExpandMore,
     MdHeight,
@@ -13,6 +14,20 @@ import {
     MdTerrain,
 } from "react-icons/md";
 import ColorLegend from "./ColorLegend";
+
+export interface TimeRangeOption {
+    label: string;
+    value: number;
+}
+
+const TIME_RANGE_OPTIONS: TimeRangeOption[] = [
+    { label: "2 hours", value: 2 * 60 * 60 * 1000 },
+    { label: "6 hours", value: 6 * 60 * 60 * 1000 },
+    { label: "12 hours", value: 12 * 60 * 60 * 1000 },
+    { label: "1 day", value: 24 * 60 * 60 * 1000 },
+    { label: "2 days", value: 2 * 24 * 60 * 60 * 1000 },
+    { label: "1 week", value: 7 * 24 * 60 * 60 * 1000 },
+];
 
 interface ColorModeButtonProps {
     mode: ColorMode;
@@ -44,14 +59,50 @@ function ColorModeButton({ mode, current, onChange, icon, label }: ColorModeButt
 
 const MemoizedColorModeButton = memo(ColorModeButton);
 
+interface TimeRangeButtonProps {
+    option: TimeRangeOption;
+    isSelected: boolean;
+    onClick: () => void;
+}
+
+function TimeRangeButton({ option, isSelected, onClick }: TimeRangeButtonProps) {
+    return (
+        <button
+            onClick={onClick}
+            className={`rounded-lg px-3 py-1 text-xs transition-all ${
+                isSelected
+                    ? "bg-slate-600 text-white shadow-md"
+                    : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-100"
+            }`}
+        >
+            {option.label}
+        </button>
+    );
+}
+
+const MemoizedTimeRangeButton = memo(TimeRangeButton);
+
 interface StatusPanelProps {
     className?: string;
     isMobile?: boolean;
 }
 
 export default function StatusPanel({ className = "", isMobile = false }: StatusPanelProps) {
-    const { lastReport, autoCenter, setAutoCenter, colorMode, setColorMode } = useFollowStore();
+    const { lastReport, autoCenter, setAutoCenter, colorMode, setColorMode, pruneThreshold, setPruneThreshold } =
+        useFollowStore();
     const [expandedOnMobile, setExpandedOnMobile] = useState(false);
+
+    // Find the closest matching time range option to the current prune threshold
+    const selectedTimeRangeIndex = useMemo(() => {
+        const index = TIME_RANGE_OPTIONS.findIndex((option) => option.value === pruneThreshold);
+        return index !== -1
+            ? index
+            : TIME_RANGE_OPTIONS.findIndex((option) => option.value === DEFAULT_PRUNE_THRESHOLD);
+    }, [pruneThreshold]);
+
+    const handleTimeRangeChange = (option: TimeRangeOption) => {
+        setPruneThreshold(option.value);
+    };
 
     const formattedValues = useMemo(() => {
         if (!lastReport) return null;
@@ -224,6 +275,23 @@ export default function StatusPanel({ className = "", isMobile = false }: Status
                                     />
                                 </Switch>
                             </div>
+
+                            <div>
+                                <div className="mb-1 text-sm font-medium text-gray-600">Time Range:</div>
+                                <div className="flex flex-wrap gap-1">
+                                    {TIME_RANGE_OPTIONS.map((option, index) => (
+                                        <MemoizedTimeRangeButton
+                                            key={option.label}
+                                            option={option}
+                                            isSelected={index === selectedTimeRangeIndex}
+                                            onClick={() => {
+                                                handleTimeRangeChange(option);
+                                            }}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+
                             <div>
                                 <div className="mb-1 text-sm font-medium text-gray-600">Track Coloring:</div>
                                 <div className="grid grid-cols-3 gap-1">
@@ -338,6 +406,25 @@ export default function StatusPanel({ className = "", isMobile = false }: Status
                                 className={`${autoCenter ? "translate-x-6" : "translate-x-1"} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
                             />
                         </Switch>
+                    </div>
+                </div>
+
+                <div>
+                    <div className="mb-3 flex items-center">
+                        <MdAccessTime className="mr-2 h-5 w-5 text-slate-600" />
+                        <span className="font-medium text-gray-700">Time Range</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                        {TIME_RANGE_OPTIONS.map((option, index) => (
+                            <MemoizedTimeRangeButton
+                                key={option.label}
+                                option={option}
+                                isSelected={index === selectedTimeRangeIndex}
+                                onClick={() => {
+                                    handleTimeRangeChange(option);
+                                }}
+                            />
+                        ))}
                     </div>
                 </div>
 

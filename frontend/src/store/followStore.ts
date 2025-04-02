@@ -14,6 +14,7 @@ interface FollowState {
     trips: Trip[];
     lastReport: Report | null;
     pruneThreshold: number;
+    previousPruneThreshold: number;
 
     setColorMode: (mode: ColorMode) => void;
     setAutoCenter: (autoCenter: boolean) => void;
@@ -21,13 +22,14 @@ interface FollowState {
     clearReports: () => void;
     pruneReports: () => void;
     setPruneThreshold: (threshold: number) => void;
+    shouldRefetch: () => boolean;
 }
 
 // Define the threshold for splitting trips (2 minutes)
 const TRIP_SPLIT_THRESHOLD = 120 * 1000;
 
 // Default pruning threshold (2 days)
-const DEFAULT_PRUNE_THRESHOLD = 2 * 24 * 60 * 60 * 1000;
+export const DEFAULT_PRUNE_THRESHOLD = 2 * 24 * 60 * 60 * 1000;
 
 export const useFollowStore = create<FollowState>((set, get) => ({
     autoCenter: true,
@@ -35,6 +37,7 @@ export const useFollowStore = create<FollowState>((set, get) => ({
     lastReport: null,
     trips: [],
     pruneThreshold: DEFAULT_PRUNE_THRESHOLD,
+    previousPruneThreshold: DEFAULT_PRUNE_THRESHOLD,
 
     setColorMode: (mode) => {
         set({ colorMode: mode });
@@ -43,7 +46,14 @@ export const useFollowStore = create<FollowState>((set, get) => ({
         set({ autoCenter });
     },
     setPruneThreshold: (threshold) => {
-        set({ pruneThreshold: threshold });
+        const currentThreshold = get().pruneThreshold;
+
+        set({ pruneThreshold: threshold, previousPruneThreshold: currentThreshold });
+    },
+
+    shouldRefetch: () => {
+        const { pruneThreshold, previousPruneThreshold } = get();
+        return pruneThreshold > previousPruneThreshold;
     },
 
     clearReports: () => {
