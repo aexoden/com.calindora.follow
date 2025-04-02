@@ -1,12 +1,51 @@
 /* eslint-disable sort-keys */
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { z } from "zod";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+const errorResponseSchema = z.object({
+    code: z.string(),
+    success: z.literal(false),
+    reason: z.string(),
+});
+
+export type ApiErrorResponse = z.infer<typeof errorResponseSchema>;
+
+export class ApiError extends Error {
+    status: number;
+    responseData?: unknown;
+
+    constructor(message: string, status: number, responseData?: unknown) {
+        super(message);
+        this.name = "ApiError";
+        this.status = status;
+        this.responseData = responseData;
+    }
+}
+
 const api = axios.create({
     baseURL: API_BASE_URL,
 });
+
+api.interceptors.response.use(
+    (response) => response,
+    (error: AxiosError) => {
+        const status = error.response?.status ?? 500;
+        let errorMessage = "An unexpected error occurred";
+
+        if (error.response?.data) {
+            try {
+                const errorData = errorResponseSchema.parse(error.response.data);
+                errorMessage = errorData.reason;
+            } catch (_error) {
+                errorMessage = "Failed to parse error response";
+            }
+        }
+
+        return Promise.reject(new ApiError(errorMessage, status, error.response?.data));
+    },
+);
 
 const reportSchema = z.object({
     id: z.string(),
@@ -30,23 +69,43 @@ export interface ReportParams {
 }
 
 export const apiService = {
-    async checkDeviceExists(deviceKey: string) {
+    async checkDeviceExists(deviceKey: string): Promise<boolean> {
         try {
             const params = { limit: 1 };
             await api.get(`/api/v1/devices/${deviceKey}/reports`, { params });
             return true;
-        } catch (_error) {
-            return false;
+        } catch (error) {
+            if (error instanceof ApiError && error.status === 404) {
+                return false;
+            }
+
+            throw error;
         }
     },
 
-    async getReport(deviceKey: string, reportId: string) {
-        const response = await api.get<Report>(`/api/v1/devices/${deviceKey}/reports/${reportId}`);
-        return reportSchema.parseAsync(response.data);
+    async getReport(deviceKey: string, reportId: string): Promise<Report> {
+        try {
+            const response = await api.get<Report>(`/api/v1/devices/${deviceKey}/reports/${reportId}`);
+            return await reportSchema.parseAsync(response.data);
+        } catch (error) {
+            if (error instanceof z.ZodError) {
+                throw new ApiError("Invalid report data received from server", 422, error.format());
+            }
+
+            throw error;
+        }
     },
 
-    async getReports(deviceKey: string, params: ReportParams = {}) {
-        const response = await api.get<Report[]>(`/api/v1/devices/${deviceKey}/reports`, { params });
-        return z.array(reportSchema).parseAsync(response.data);
+    async getReports(deviceKey: string, params: ReportParams = {}): Promise<Report[]> {
+        try {
+            const response = await api.get<Report[]>(`/api/v1/devices/${deviceKey}/reports`, { params });
+            return await z.array(reportSchema).parseAsync(response.data);
+        } catch (error) {
+            if (error instanceof z.ZodError) {
+                throw new ApiError("Invalid report data received from server", 422, error.format());
+            }
+
+            throw error;
+        }
     },
 };
