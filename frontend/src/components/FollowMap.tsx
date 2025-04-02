@@ -130,7 +130,7 @@ function FollowMap({ className = "" }: FollowMapProps) {
         });
     }, [trips, getPathStyles]);
 
-    if (!isLoaded) return <div className="flex items-center justify-center h-full">Loading Maps...</div>;
+    if (!isLoaded) return <div className="flex h-full items-center justify-center">Loading Maps...</div>;
 
     return (
         <div className={`h-full ${className}`}>

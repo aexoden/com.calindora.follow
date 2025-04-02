@@ -32,21 +32,21 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             }
 
             return (
-                <div className="h-full flex flex-col items-center justify-center bg-gray-50 p-4">
-                    <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6 text-center">
-                        <FiAlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                        <h2 className="text-xl font-bold text-gray-800 mb-2">Something went wrong</h2>
-                        <p className="text-gray-600 mb-4">
+                <div className="flex h-full flex-col items-center justify-center bg-gray-50 p-4">
+                    <div className="w-full max-w-md rounded-lg bg-white p-6 text-center shadow-lg">
+                        <FiAlertTriangle className="mx-auto mb-4 h-12 w-12 text-red-500" />
+                        <h2 className="mb-2 text-xl font-bold text-gray-800">Something went wrong</h2>
+                        <p className="mb-4 text-gray-600">
                             We're sorry, but an unexpected error has occurred. Please try refreshing the page.
                         </p>
-                        <p className="text-sm text-gray-500 mb-4 overflow-auto max-h-32 text-left p-2 bg-gray-50 rounded">
+                        <p className="mb-4 max-h-32 overflow-auto rounded bg-gray-50 p-2 text-left text-sm text-gray-500">
                             {this.state.error?.message ?? "Unknown error"}
                         </p>
                         <button
                             onClick={() => {
                                 window.location.reload();
                             }}
-                            className="bg-slate-500 text-white py-2 px-4 rounded hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
+                            className="rounded bg-slate-500 px-4 py-2 text-white hover:bg-slate-600 focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:outline-none"
                         >
                             Refresh page
                         </button>

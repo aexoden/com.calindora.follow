@@ -98,7 +98,7 @@ export default function FollowPage() {
     }, [addReports, initialReports]);
 
     // Real-time polling for new data
-    const { data: polledReports, error: pollingError } = useSWR<Report[], Error>(
+    const { data: polledReports } = useSWR<Report[], Error>(
         deviceKey && deviceExists && isComplete ? ["pollingReports", deviceKey, currentSince] : null,
         async () => {
             const params: ReportParams = {

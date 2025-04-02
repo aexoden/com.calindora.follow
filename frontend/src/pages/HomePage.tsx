@@ -19,17 +19,17 @@ export default function HomePage() {
     };
 
     return (
-        <div className="max-w-md mx-auto p-6 mt-16">
-            <div className="bg-white shadow-lg rounded-lg p-8">
-                <h1 className="text-3xl font-bold text-slate-600 mb-6 text-center">Calindora Follow</h1>
+        <div className="mx-auto mt-16 max-w-md p-6">
+            <div className="rounded-lg bg-white p-8 shadow-lg">
+                <h1 className="mb-6 text-center text-3xl font-bold text-slate-600">Calindora Follow</h1>
 
-                <p className="text-gray-600 mb-6 text-center">Enter a device key to start following the device</p>
+                <p className="mb-6 text-center text-gray-600">Enter a device key to start following the device</p>
 
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
                         <label
                             htmlFor="device-key"
-                            className="block text-sm font-medium text-gray-700 mb-1"
+                            className="mb-1 block text-sm font-medium text-gray-700"
                         >
                             Device Key
                         </label>
@@ -41,15 +41,15 @@ export default function HomePage() {
                                 setDeviceKey(e.target.value);
                                 setError("");
                             }}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-slate-500 focus:border-slate-500"
+                            className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-slate-500 focus:ring-slate-500"
                             placeholder="Enter a device key"
                         />
-                        {error && <p className="mt-1 text-red-500 text-sm">{error}</p>}
+                        {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
                     </div>
 
                     <button
                         type="submit"
-                        className="w-full bg-slate-500 text-white py-2 px-4 rounded-md hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-colors flex items-center justify-center"
+                        className="flex w-full items-center justify-center rounded-md bg-slate-500 px-4 py-2 text-white transition-colors hover:bg-slate-600 focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:outline-none"
                     >
                         <span>Start Following</span>
                         <FiArrowRight className="ml-2" />
