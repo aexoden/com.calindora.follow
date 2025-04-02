@@ -12,6 +12,7 @@ import {
     MdTimelapse,
     MdTerrain,
 } from "react-icons/md";
+import ColorLegend from "./ColorLegend";
 
 interface ColorModeButtonProps {
     mode: ColorMode;
@@ -248,6 +249,12 @@ export default function StatusPanel({ className = "", isMobile = false }: Status
                                         label="Elevation"
                                     />
                                 </div>
+                                <div className="mt-2">
+                                    <ColorLegend
+                                        mode={colorMode}
+                                        compact={true}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -358,6 +365,10 @@ export default function StatusPanel({ className = "", isMobile = false }: Status
                             icon={<MdTerrain className="h-5 w-5" />}
                             label="Elevation"
                         />
+                    </div>
+
+                    <div className="mt-4">
+                        <ColorLegend mode={colorMode} />
                     </div>
                 </div>
             </div>
