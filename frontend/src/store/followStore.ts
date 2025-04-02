@@ -13,21 +13,28 @@ interface FollowState {
     autoCenter: boolean;
     trips: Trip[];
     lastReport: Report | null;
+    pruneThreshold: number;
 
     setColorMode: (mode: ColorMode) => void;
     setAutoCenter: (autoCenter: boolean) => void;
     addReports: (reports: Report[]) => void;
     clearReports: () => void;
+    pruneReports: () => void;
+    setPruneThreshold: (threshold: number) => void;
 }
 
 // Define the threshold for splitting trips (2 minutes)
 const TRIP_SPLIT_THRESHOLD = 120 * 1000;
+
+// Default pruning threshold (2 days)
+const DEFAULT_PRUNE_THRESHOLD = 2 * 24 * 60 * 60 * 1000;
 
 export const useFollowStore = create<FollowState>((set, get) => ({
     autoCenter: true,
     colorMode: "time",
     lastReport: null,
     trips: [],
+    pruneThreshold: DEFAULT_PRUNE_THRESHOLD,
 
     setColorMode: (mode) => {
         set({ colorMode: mode });
@@ -35,9 +42,31 @@ export const useFollowStore = create<FollowState>((set, get) => ({
     setAutoCenter: (autoCenter) => {
         set({ autoCenter });
     },
+    setPruneThreshold: (threshold) => {
+        set({ pruneThreshold: threshold });
+    },
 
     clearReports: () => {
         set({ trips: [], lastReport: null });
+    },
+
+    pruneReports: () => {
+        const { trips, pruneThreshold } = get();
+        const now = new Date().getTime();
+        const cutoffTime = now - pruneThreshold;
+
+        const prunedTrips = trips
+            .map((trip) => {
+                const prunedReports = trip.reports.filter((report) => {
+                    const reportTime = new Date(report.timestamp).getTime();
+                    return reportTime >= cutoffTime;
+                });
+
+                return { reports: prunedReports };
+            })
+            .filter((trip) => trip.reports.length > 0);
+
+        set({ trips: prunedTrips });
     },
 
     addReports: (reports) => {
@@ -70,5 +99,8 @@ export const useFollowStore = create<FollowState>((set, get) => ({
             trips: updatedTrips,
             lastReport,
         });
+
+        // Prune reports after adding new ones
+        get().pruneReports();
     },
 }));

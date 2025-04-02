@@ -14,6 +14,7 @@ import { ApiError } from "../services/api";
 const INITIAL_DATA_DURATION = 86400 * 1000 * 2; // 2 days
 const POLLING_INTERVAL = 5000; // 5 seconds
 const REPORT_LIMIT = 1000;
+const PRUNE_INTERVAL = 60000; // 1 minute
 
 export default function FollowPage() {
     const { deviceKey } = useParams<{ deviceKey: string }>();
@@ -22,7 +23,7 @@ export default function FollowPage() {
     );
     const [isComplete, setIsComplete] = useState(false);
     const navigate = useNavigate();
-    const { addReports, clearReports } = useFollowStore();
+    const { addReports, clearReports, pruneReports, setPruneThreshold } = useFollowStore();
     const { addError } = useError();
 
     // Clear reports when component mounts or deviceKey changes
@@ -30,7 +31,20 @@ export default function FollowPage() {
         clearReports();
         setIsComplete(false);
         setCurrentSince(new Date(new Date().getTime() - INITIAL_DATA_DURATION).toISOString());
-    }, [clearReports, deviceKey]);
+        setPruneThreshold(INITIAL_DATA_DURATION);
+    }, [clearReports, deviceKey, setPruneThreshold]);
+
+    // Set up automatic pruning on an interval
+    useEffect(() => {
+        const pruneTimer = setInterval(() => {
+            pruneReports();
+        }, PRUNE_INTERVAL);
+
+        // Clean up the interval on component unmount
+        return () => {
+            clearInterval(pruneTimer);
+        };
+    }, [pruneReports]);
 
     // Check if device exists
     const {
