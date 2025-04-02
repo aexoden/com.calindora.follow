@@ -44,13 +44,10 @@ export const useFollowStore = create<FollowState>((set, get) => ({
         if (reports.length === 0) return;
 
         const state = get();
-        const newReports = [...reports].sort((a, b) => {
-            return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
-        });
 
         const updatedTrips = [...state.trips];
 
-        for (const report of newReports) {
+        for (const report of reports) {
             if (updatedTrips.length === 0 || !updatedTrips[updatedTrips.length - 1].reports.length) {
                 updatedTrips.push({ reports: [report] });
             } else {
@@ -67,7 +64,7 @@ export const useFollowStore = create<FollowState>((set, get) => ({
             }
         }
 
-        const lastReport = newReports[newReports.length - 1];
+        const lastReport = reports[reports.length - 1];
 
         set({
             trips: updatedTrips,

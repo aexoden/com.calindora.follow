@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import { formatDistance } from "date-fns";
 import { useFollowStore, ColorMode } from "../store/followStore";
 import { Switch } from "@headlessui/react";
@@ -31,6 +32,8 @@ function ColorModeButton({ mode, current, onChange, icon, label }: ColorModeButt
     );
 }
 
+const MemoizedColorModeButton = memo(ColorModeButton);
+
 interface StatusPanelProps {
     className?: string;
 }
@@ -38,34 +41,44 @@ interface StatusPanelProps {
 export default function StatusPanel({ className = "" }: StatusPanelProps) {
     const { lastReport, autoCenter, setAutoCenter, colorMode, setColorMode } = useFollowStore();
 
-    if (!lastReport) {
+    const formattedValues = useMemo(() => {
+        if (!lastReport) return null;
+
+        const timestamp = new Date(lastReport.timestamp);
+        const submitTimestamp = lastReport.submit_timestamp ? new Date(lastReport.submit_timestamp) : null;
+
+        const speedMph = Math.round(lastReport.speed * 2.23693629);
+        const altitudeFeet = Math.round(lastReport.altitude * 3.280839895);
+        const latFormatted = Math.round(lastReport.latitude * 100000) / 100000;
+        const lngFormatted = Math.round(lastReport.longitude * 100000) / 100000;
+        const bearingFormatted = Math.round(lastReport.bearing * 100) / 100;
+
+        let delayText = "";
+        if (submitTimestamp && submitTimestamp.getTime() - timestamp.getTime() > 15000) {
+            delayText = `(delayed ${formatDistance(submitTimestamp, timestamp, { addSuffix: false })})`;
+        }
+
+        return {
+            altitudeFeet,
+            bearingFormatted,
+            delayText,
+            latFormatted,
+            lngFormatted,
+            speedMph,
+            submitTimestamp,
+            timestamp,
+        };
+    }, [lastReport]);
+
+    // This is just to satisfy TypeScript, since it apparently can't infer that
+    // formattedValues is only null if lastReport is null.
+    if (!lastReport || !formattedValues) {
         return (
             <div className={`rounded bg-white p-4 shadow ${className}`}>
                 <h1 className="mb-4 text-2xl font-bold text-slate-600">Calindora Follow</h1>
                 <p className="text-gray-600">Waiting for location data...</p>
             </div>
         );
-    }
-
-    const timestamp = new Date(lastReport.timestamp);
-    const submitTimestamp = lastReport.submit_timestamp ? new Date(lastReport.submit_timestamp) : null;
-    const latitude = lastReport.latitude;
-    const longitude = lastReport.longitude;
-    const altitude = lastReport.altitude;
-    const speed = lastReport.speed;
-    const bearing = lastReport.bearing;
-
-    const speedMph = Math.round(speed * 2.23693629);
-
-    const altitudeFeet = Math.round(altitude * 3.280839895);
-
-    const latFormatted = Math.round(latitude * 100000) / 100000;
-    const lngFormatted = Math.round(longitude * 100000) / 100000;
-    const bearingFormatted = Math.round(bearing * 100) / 100;
-
-    let delayText = "";
-    if (submitTimestamp && submitTimestamp.getTime() - timestamp.getTime() > 15000) {
-        delayText = `(delayed ${formatDistance(submitTimestamp, timestamp, { addSuffix: false })})`;
     }
 
     return (
@@ -76,34 +89,36 @@ export default function StatusPanel({ className = "" }: StatusPanelProps) {
                 <dl className="space-y-2">
                     <div className="flex justify-between">
                         <dt className="font-medium text-gray-600">Last Update:</dt>
-                        <dd className="text-gray-900">{timestamp.toLocaleString()}</dd>
+                        <dd className="text-gray-900">{formattedValues.timestamp.toLocaleString()}</dd>
                     </div>
 
-                    {delayText && <div className="-mt-2 flex justify-end text-sm text-red-500">{delayText}</div>}
+                    {formattedValues.delayText && (
+                        <div className="-mt-2 flex justify-end text-sm text-red-500">{formattedValues.delayText}</div>
+                    )}
 
                     <div className="flex justify-between">
                         <dt className="font-medium text-gray-600">Latitude:</dt>
-                        <dd className="text-gray-900">{latFormatted}°</dd>
+                        <dd className="text-gray-900">{formattedValues.latFormatted}°</dd>
                     </div>
 
                     <div className="flex justify-between">
                         <dt className="font-medium text-gray-600">Longitude:</dt>
-                        <dd className="text-gray-900">{lngFormatted}°</dd>
+                        <dd className="text-gray-900">{formattedValues.lngFormatted}°</dd>
                     </div>
 
                     <div className="flex justify-between">
                         <dt className="font-medium text-gray-600">Altitude:</dt>
-                        <dd className="text-gray-900">{altitudeFeet} ft</dd>
+                        <dd className="text-gray-900">{formattedValues.altitudeFeet} ft</dd>
                     </div>
 
                     <div className="flex justify-between">
                         <dt className="font-medium text-gray-600">Speed:</dt>
-                        <dd className="text-gray-900">{speedMph} mph</dd>
+                        <dd className="text-gray-900">{formattedValues.speedMph} mph</dd>
                     </div>
 
                     <div className="flex justify-between">
                         <dt className="font-medium text-gray-600">Bearing:</dt>
-                        <dd className="text-gray-900">{bearingFormatted}°</dd>
+                        <dd className="text-gray-900">{formattedValues.bearingFormatted}°</dd>
                     </div>
                 </dl>
             </div>
@@ -130,21 +145,21 @@ export default function StatusPanel({ className = "" }: StatusPanelProps) {
             <div>
                 <label className="mb-2 block font-medium text-gray-600">Color Tracks By:</label>
                 <div className="grid grid-cols-3 gap-2">
-                    <ColorModeButton
+                    <MemoizedColorModeButton
                         mode="time"
                         current={colorMode}
                         onChange={setColorMode}
                         icon={<MdTimelapse className="h-5 w-5" />}
                         label="Time"
                     />
-                    <ColorModeButton
+                    <MemoizedColorModeButton
                         mode="speed"
                         current={colorMode}
                         onChange={setColorMode}
                         icon={<MdSpeed className="h-5 w-5" />}
                         label="Speed"
                     />
-                    <ColorModeButton
+                    <MemoizedColorModeButton
                         mode="elevation"
                         current={colorMode}
                         onChange={setColorMode}
