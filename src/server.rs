@@ -2,9 +2,14 @@ use std::net::TcpListener;
 use std::str::FromStr;
 
 use actix_cors::Cors;
+use actix_files::NamedFile;
 use actix_web::{
-    App, HttpResponse, HttpServer, dev::Server, error, http::StatusCode, http::header, web::Data,
-    web::QueryConfig,
+    App, HttpResponse, HttpServer,
+    dev::Server,
+    error,
+    http::{StatusCode, header},
+    web,
+    web::{Data, QueryConfig},
 };
 use actix_web_validator::JsonConfig;
 use serde_json::json;
@@ -120,13 +125,16 @@ fn run(listener: TcpListener, db_pool: PgPool, settings: Settings) -> std::io::R
             .app_data(query_cfg)
             .app_data(db_pool.clone())
             .app_data(settings.clone())
-            .service(crate::routes::index::index)
-            .service(crate::routes::index::follow)
             .service(crate::routes::health_check::health_check)
             .service(crate::routes::api::get_report_by_id)
             .service(crate::routes::api::get_reports)
             .service(crate::routes::api::post_report)
-            .service(actix_files::Files::new("/static", "./static"))
+            .service(actix_files::Files::new("/static", "./static").index_file("index.html"))
+            .default_service(web::route().to(|| async {
+                NamedFile::open_async("./static/app/index.html")
+                    .await
+                    .map_err(error::ErrorInternalServerError)
+            }))
     })
     .listen(listener)?
     .run();

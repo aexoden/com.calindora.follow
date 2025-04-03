@@ -22,9 +22,8 @@ Replace ```<database URL>``` with the appropriate URL to a Postgres database.
 The angle brackets should not be included. If using Dokku, DATABASE_URL should
 be set automatically when associating the database to the application.
 
-In addition, a valid Google Maps API key should be specified, either via the
-appropriate configuration file in `settings` or the
-`APP_APPLICATION__MAPS_API_KEY` environment variable.
+In addition, a valid Google Maps API key should be specified via the
+`VITE_GOOGLE_MAPS_API_KEY` environment variable.
 
 ## Development
 
@@ -36,6 +35,15 @@ and the database should exist.
 If intending to run the test suite, note that the provided database user needs
 to have permission to create databases, as the test suite creates test
 databases. These databases are not currently cleaned up in any way.
+
+In addition, you may sent the `APP_APPLICATION__ADDRESS` and `APP_APPLICATION__PORT`
+environment variables to adjust the listening port and address.
+
+It is recommended to run the main server with `cargo run` and then to separately
+run the frontend in the frontend directory with `pnpm run dev`. A second .env file
+may be placed in the frontend directory with the `VITE_API_BASE_URL` variable to
+set the API address and the `VITE_GOOGLE_MAPS_API_KEY` variable shoudl contain a
+valid Google Maps API key.
 
 ## Authors
 

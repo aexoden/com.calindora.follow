@@ -1,0 +1,33 @@
+# Git files
+.git
+.gitignore
+
+# Node.js
+node_modules
+frontend/node_modules
+frontend/dist
+npm-debug.log
+
+# Rust
+target
+Cargo.lock
+
+# Environment variables
+**/.env
+**/.env.*
+
+# Editor directories and files
+.vscode
+.idea
+*.swp
+*.swo
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# Misc
+README.md
+LICENSE
+*.md

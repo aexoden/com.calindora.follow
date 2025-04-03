@@ -7,7 +7,6 @@ pub struct Settings {
 #[derive(serde::Deserialize, Clone)]
 pub struct ApplicationSettings {
     pub address: String,
-    pub maps_api_key: String,
     pub port: u16,
 }
 

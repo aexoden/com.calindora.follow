@@ -1,0 +1,24 @@
+{
+    "name": "com.calindora.follow",
+    "description": "Location tracking and visualization application",
+    "healthchecks": {
+        "web": [
+            {
+                "type": "startup",
+                "name": "rust",
+                "description": "Verifying the Rust API is responsive",
+                "path": "/health_check",
+                "attempts": 3
+            },
+            {
+                "type": "startup",
+                "name": "react",
+                "description": "Verifying the frontend static files are being served",
+                "path": "/",
+                "attempts": 3,
+                "content": "<html",
+                "initialDelay": 2
+            }
+        ]
+    }
+}

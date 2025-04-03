@@ -2,7 +2,15 @@
 import axios, { AxiosError } from "axios";
 import { z } from "zod";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const getApiBaseUrl = () => {
+    if (import.meta.env.VITE_API_BASE_URL) {
+        return import.meta.env.VITE_API_BASE_URL;
+    }
+
+    return "";
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 const errorResponseSchema = z.object({
     code: z.string(),
