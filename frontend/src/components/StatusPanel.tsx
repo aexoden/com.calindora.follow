@@ -12,6 +12,7 @@ import {
     MdSpeed,
     MdTimelapse,
     MdTerrain,
+    MdInfo,
 } from "react-icons/md";
 import ColorLegend from "./ColorLegend";
 
@@ -186,24 +187,145 @@ export default function StatusPanel({ className = "", isMobile = false, screenSi
         };
     }, [lastReport]);
 
-    // This is just to satisfy TypeScript, since it apparently can't infer that
-    // formattedValues is only null if lastReport is null.
-    if (!lastReport || !formattedValues) {
-        return (
-            <div className={`rounded-lg bg-white p-4 shadow-md ${className}`}>
-                <h1 className="mb-4 text-xl font-bold text-slate-700">Calindora Follow</h1>
-                <div className="flex items-center justify-center py-8">
-                    <div className="animate-pluse flex items-center space-x-2">
-                        <div className="h-3 w-3 rounded-full bg-slate-400"></div>
-                        <div className="h-3 w-3 rounded-full bg-slate-400"></div>
-                        <div className="h-3 w-3 rounded-full bg-slate-400"></div>
+    const renderNoDataAlert = () => (
+        <div>
+            <div>
+                <div className="mb-4 rounded-lg bg-amber-50 p-3">
+                    <div className="flex items-start">
+                        <MdInfo className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-amber-500" />
+                        <p className="text-sm text-amber-700">
+                            No location data available in the selected time range. Try selecting a longer time range
+                            below.
+                        </p>
                     </div>
                 </div>
-                <p className="text-gray-600">Waiting for location data...</p>
+            </div>
+        </div>
+    );
+
+    const renderTimeRangeSettings = (compact = false) => (
+        <div>
+            <div className="mb-2 flex items-center">
+                <MdAccessTime className="mr-2 h-5 w-5 text-slate-600" />
+                <span className={`${compact ? "text-sm" : "text-base"} font-medium text-gray-700`}>Time Range</span>
+            </div>
+            <div className={`grid ${isMobile ? "grid-cols-3" : compact ? "grid-cols-1" : "grid-cols-3"} gap-1.5`}>
+                {TIME_RANGE_OPTIONS.map((option, index) => (
+                    <MemoizedTimeRangeButton
+                        key={option.label}
+                        option={option}
+                        isSelected={index === selectedTimeRangeIndex}
+                        onClick={() => {
+                            handleTimeRangeChange(option);
+                        }}
+                        compact={compact}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+
+    const renderColorModeSettings = (compact = false) => (
+        <div>
+            <div className="mb-2 flex items-center">
+                <span className={`${compact ? "text-sm" : "text-base"} font-medium text-gray-700`}>Track Coloring</span>
+            </div>
+            <div className={`grid ${compact && !isMobile ? "grid-cols-1" : "grid-cols-3"} gap-1.5`}>
+                <MemoizedColorModeButton
+                    mode="time"
+                    current={colorMode}
+                    onChange={setColorMode}
+                    icon={<MdTimelapse className={compact ? "h-4 w-4" : "h-5 w-5"} />}
+                    label="Time"
+                    compact={compact}
+                />
+                <MemoizedColorModeButton
+                    mode="speed"
+                    current={colorMode}
+                    onChange={setColorMode}
+                    icon={<MdSpeed className={compact ? "h-4 w-4" : "h-5 w-5"} />}
+                    label="Speed"
+                    compact={compact}
+                />
+                <MemoizedColorModeButton
+                    mode="elevation"
+                    current={colorMode}
+                    onChange={setColorMode}
+                    icon={<MdTerrain className={compact ? "h-4 w-4" : "h-5 w-5"} />}
+                    label="Elevation"
+                    compact={compact}
+                />
+            </div>
+            <div className="mt-3">
+                <ColorLegend
+                    mode={colorMode}
+                    compact={compact}
+                />
+            </div>
+        </div>
+    );
+
+    const renderAutoCenterToggle = (compact = false) => (
+        <div>
+            <div className="mb-3 flex items-center justify-between">
+                <span className={`${compact ? "text-sm" : "text-base"} font-medium text-gray-700`}>
+                    Auto-Center Map
+                </span>
+                <Switch
+                    checked={autoCenter}
+                    onChange={setAutoCenter}
+                    className={`${
+                        autoCenter ? "bg-slate-600" : "bg-gray-300"
+                    } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:outline-none`}
+                >
+                    <span
+                        className={`${autoCenter ? "translate-x-6" : "translate-x-1"} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                    />
+                </Switch>
+            </div>
+        </div>
+    );
+
+    const renderSettings = (compact = false) => (
+        <div className="space-y-4">
+            {renderAutoCenterToggle(compact)}
+            {renderTimeRangeSettings(compact)}
+            {renderColorModeSettings(compact)}
+        </div>
+    );
+
+    const renderMobileLocationMetrics = () => {
+        if (!formattedValues) return null;
+
+        return (
+            <div className="mb-4 grid grid-cols-3 gap-2">
+                <div className="rounded-lg bg-slate-50 p-2 text-center">
+                    <div className="flex justify-center text-slate-500">
+                        <MdHeight className="h-4 w-4" />
+                    </div>
+                    <div className="mt-1 text-lg font-semibold text-slate-700">{formattedValues.altitudeFeet}</div>
+                    <div className="text-xs text-gray-500">FT</div>{" "}
+                </div>
+                <div className="rounded-lg bg-slate-50 p-2 text-center">
+                    <div className="flex justify-center text-slate-500">
+                        <MdNearMe className="h-4 w-4" />
+                    </div>
+                    <div className="mt-1 text-lg font-semibold text-slate-700">{formattedValues.bearingText}</div>
+                    <div className="text-xs text-gray-500">{formattedValues.bearingFormatted}°</div>
+                </div>
+
+                <div className="rounded-lg bg-slate-50 p-2 text-center">
+                    <div className="flex justify-center text-slate-500">
+                        <MdMyLocation className="h-4 w-4" />
+                    </div>
+                    <div className="mt-1 text-lg font-semibold text-slate-700">{formattedValues.latFormatted}</div>
+                    <div className="text-xs text-gray-500">{formattedValues.lngFormatted}</div>
+                </div>
             </div>
         );
-    }
+    };
 
+    // Mobile view
     if (isMobile) {
         return (
             <div className={`rounded-lg bg-white shadow-md transition-all ${className}`}>
@@ -216,39 +338,55 @@ export default function StatusPanel({ className = "", isMobile = false, screenSi
                     {/* Main info section - visible when collapsed */}
                     <div className="flex items-center">
                         <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
-                            <MdMyLocation className="h-5 w-5 text-slate-600" />
+                            {formattedValues ? (
+                                <MdMyLocation className="h-5 w-5 text-slate-600" />
+                            ) : (
+                                <MdInfo className="h-5 w-5 text-amber-500" />
+                            )}
                         </div>
                         <div className="flex-1">
-                            <h2 className="text-l font-medium text-slate-800">Current Location</h2>
-                            <p className="text-sm text-gray-500">{formattedValues.formattedTime}</p>
+                            <h2 className="text-l font-medium text-slate-800">
+                                {formattedValues ? "Current Location" : "No Location Data"}
+                            </h2>
+                            <p className="text-sm text-gray-500">
+                                {formattedValues ? formattedValues.formattedTime : "Adjust time range"}
+                            </p>
                         </div>
                     </div>
 
                     {/* Middle section - compass */}
-                    <div className="flex flex-1 flex-col items-center">
-                        <div className="text-2xl">
-                            <MdNearMe
-                                className="text-slate-500"
-                                style={{
-                                    transform: `rotate(${formattedValues.bearingRotation.toString()}deg)`,
-                                }}
-                            />
+                    {formattedValues && (
+                        <div className="flex flex-1 flex-col items-center">
+                            <div className="text-2xl">
+                                <MdNearMe
+                                    className="text-slate-500"
+                                    style={{
+                                        transform: `rotate(${formattedValues.bearingRotation.toString()}deg)`,
+                                    }}
+                                />
+                            </div>
+                            <div className="text-sm font-medium text-slate-600">{formattedValues.bearingText}</div>
                         </div>
-                        <div className="text-sm font-medium text-slate-600">{formattedValues.bearingText}</div>
-                    </div>
+                    )}
 
                     {/* Right section - speed and altitude */}
-                    <div className="flex flex-col items-end">
-                        <div className="flex items-baseline">
-                            <span className="text-l font-semibold text-slate-700">{formattedValues.speedMph}</span>
-                            <span className="ml-1 text-xs text-gray-500">MPH</span>
+                    {formattedValues && (
+                        <div className="flex flex-col items-end">
+                            <div className="flex items-baseline">
+                                <span className="text-l font-semibold text-slate-700">{formattedValues.speedMph}</span>
+                                <span className="ml-1 text-xs text-gray-500">MPH</span>
+                            </div>
+                            <div className="flex items-baseline">
+                                <span className="text-sm font-medium text-slate-600">
+                                    {formattedValues.altitudeFeet}
+                                </span>
+                                <span className="ml-1 text-xs text-gray-500">FT</span>
+                            </div>
                         </div>
-                        <div className="flex items-baseline">
-                            <span className="text-sm font-medium text-slate-600">{formattedValues.altitudeFeet}</span>
-                            <span className="ml-1 text-xs text-gray-500">FT</span>
-                        </div>
-                    </div>
-                    <div className="ml-2 flex flex-col items-end">
+                    )}
+
+                    {/* Expand/Collapse control */}
+                    <div className={`${formattedValues ? "ml-2" : "ml-auto"} flex flex-col items-end`}>
                         {expandedOnMobile ? (
                             <MdExpandMore className="mt-1 h-5 w-5 text-gray-500" />
                         ) : (
@@ -263,109 +401,29 @@ export default function StatusPanel({ className = "", isMobile = false, screenSi
                     }`}
                 >
                     <div className="border-t border-gray-100 p-3">
-                        <div className="mb-4 grid grid-cols-3 gap-2">
-                            <div className="rounded-lg bg-slate-50 p-2 text-center">
-                                <div className="flex justify-center text-slate-500">
-                                    <MdHeight className="h-4 w-4" />
-                                </div>
-                                <div className="mt-1 text-lg font-semibold text-slate-700">
-                                    {formattedValues.altitudeFeet}
-                                </div>
-                                <div className="text-xs text-gray-500">FT</div>{" "}
-                            </div>
+                        {/* Show location metrics if we have data */}
+                        {formattedValues && renderMobileLocationMetrics()}
 
-                            <div className="rounded-lg bg-slate-50 p-2 text-center">
-                                <div className="flex justify-center text-slate-500">
-                                    <MdNearMe className="h-4 w-4" />
-                                </div>
-                                <div className="mt-1 text-lg font-semibold text-slate-700">
-                                    {formattedValues.bearingText}
-                                </div>
-                                <div className="text-xs text-gray-500">{formattedValues.bearingFormatted}°</div>
-                            </div>
-
-                            <div className="rounded-lg bg-slate-50 p-2 text-center">
-                                <div className="flex justify-center text-slate-500">
-                                    <MdMyLocation className="h-4 w-4" />
-                                </div>
-                                <div className="mt-1 text-lg font-semibold text-slate-700">
-                                    {formattedValues.latFormatted}
-                                </div>
-                                <div className="text-xs text-gray-500">{formattedValues.lngFormatted}</div>
-                            </div>
-                        </div>
-
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium text-gray-600">Auto-Center Map</span>
-                                <Switch
-                                    checked={autoCenter}
-                                    onChange={setAutoCenter}
-                                    className={`${
-                                        autoCenter ? "bg-slate-600" : "bg-gray-300"
-                                    } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:outline-none`}
-                                >
-                                    <span
-                                        className={`${autoCenter ? "translate-x-6" : "translate-x-1"} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
-                                    />
-                                </Switch>
-                            </div>
-
-                            <div>
-                                <div className="mb-1 text-sm font-medium text-gray-600">Time Range:</div>
-                                <div className="flex flex-wrap gap-1">
-                                    {TIME_RANGE_OPTIONS.map((option, index) => (
-                                        <MemoizedTimeRangeButton
-                                            key={option.label}
-                                            option={option}
-                                            isSelected={index === selectedTimeRangeIndex}
-                                            onClick={() => {
-                                                handleTimeRangeChange(option);
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div>
-                                <div className="mb-1 text-sm font-medium text-gray-600">Track Coloring:</div>
-                                <div className="grid grid-cols-3 gap-1">
-                                    <MemoizedColorModeButton
-                                        mode="time"
-                                        current={colorMode}
-                                        onChange={setColorMode}
-                                        icon={<MdTimelapse className="h-4 w-4" />}
-                                        label="Time"
-                                    />
-                                    <MemoizedColorModeButton
-                                        mode="speed"
-                                        current={colorMode}
-                                        onChange={setColorMode}
-                                        icon={<MdSpeed className="h-4 w-4" />}
-                                        label="Speed"
-                                    />
-                                    <MemoizedColorModeButton
-                                        mode="elevation"
-                                        current={colorMode}
-                                        onChange={setColorMode}
-                                        icon={<MdTerrain className="h-4 w-4" />}
-                                        label="Elevation"
-                                    />
-                                </div>
-                                <div className="mt-2">
-                                    <ColorLegend
-                                        mode={colorMode}
-                                        compact={true}
-                                    />
-                                </div>
-                            </div>
-                        </div>
+                        {/* Settings section */}
+                        {renderSettings(true)}
                     </div>
                 </div>
             </div>
         );
     }
 
+    // Desktop view with no data
+    if (!formattedValues) {
+        return (
+            <div className={`rounded-lg bg-white p-4 shadow-md ${className}`}>
+                <h1 className="mb-4 text-xl font-bold text-slate-700">Calindora Follow</h1>
+                {renderNoDataAlert()}
+                {renderSettings(isCompact)}
+            </div>
+        );
+    }
+
+    // Desktop view with data
     return (
         <div className={`rounded-lg bg-white p-4 shadow-md ${className}`}>
             <div className={`mb-4 flex items-center ${isCompact ? "space-x-2" : "space-x-3"}`}>
@@ -398,7 +456,7 @@ export default function StatusPanel({ className = "", isMobile = false, screenSi
             <div className="mb-4 grid grid-cols-3 gap-2">
                 <div className="rounded-lg border border-gray-100 bg-white p-2 text-center shadow-sm">
                     <MdSpeed className="mx-auto h-5 w-5 text-slate-500" />
-                    <div className={`mt-1 ${isCompact ? "Text-xl" : "text-2xl"} font-bold text-slate-700`}>
+                    <div className={`mt-1 ${isCompact ? "text-xl" : "text-2xl"} font-bold text-slate-700`}>
                         {formattedValues.speedMph}
                     </div>
                     <div className="text-xs text-gray-500">MPH</div>
@@ -406,7 +464,7 @@ export default function StatusPanel({ className = "", isMobile = false, screenSi
 
                 <div className="rounded-lg border border-gray-100 bg-white p-2 text-center shadow-sm">
                     <MdHeight className="mx-auto h-5 w-5 text-slate-500" />
-                    <div className={`mt-1 ${isCompact ? "Text-xl" : "text-2xl"} font-bold text-slate-700`}>
+                    <div className={`mt-1 ${isCompact ? "text-xl" : "text-2xl"} font-bold text-slate-700`}>
                         {formattedValues.altitudeFeet}
                     </div>
                     <div className="text-xs text-gray-500">FT</div>
@@ -417,7 +475,7 @@ export default function StatusPanel({ className = "", isMobile = false, screenSi
                         className="mx-auto h-5 w-5 text-slate-500"
                         style={{ transform: `rotate(${formattedValues.bearingRotation.toString()}deg)` }}
                     />
-                    <div className={`mt-1 ${isCompact ? "Text-xl" : "text-2xl"} font-bold text-slate-700`}>
+                    <div className={`mt-1 ${isCompact ? "text-xl" : "text-2xl"} font-bold text-slate-700`}>
                         {formattedValues.bearingText}
                     </div>
                     <div className="text-xs text-gray-500">{formattedValues.bearingFormatted}°</div>
@@ -442,89 +500,7 @@ export default function StatusPanel({ className = "", isMobile = false, screenSi
                 </div>
             </div>
 
-            <div className="space-y-4">
-                <div>
-                    <div className="mb-3 flex items-center justify-between">
-                        <span className={`${isCompact ? "text-sm" : "text-base"} font-medium text-gray-700`}>
-                            Auto-Center Map
-                        </span>
-                        <Switch
-                            checked={autoCenter}
-                            onChange={setAutoCenter}
-                            className={`${
-                                autoCenter ? "bg-slate-600" : "bg-gray-300"
-                            } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:outline-none`}
-                        >
-                            <span
-                                className={`${autoCenter ? "translate-x-6" : "translate-x-1"} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
-                            />
-                        </Switch>
-                    </div>
-                </div>
-
-                <div>
-                    <div className="mb-2 flex items-center">
-                        <MdAccessTime className="mr-2 h-5 w-5 text-slate-600" />
-                        <span className={`${isCompact ? "text-sm" : "text-base"} font-medium text-gray-700`}>
-                            Time Range
-                        </span>
-                    </div>
-                    <div className={`grid ${isCompact ? "grid-cols-2" : "grid-cols-3"} gap-1.5`}>
-                        {TIME_RANGE_OPTIONS.map((option, index) => (
-                            <MemoizedTimeRangeButton
-                                key={option.label}
-                                option={option}
-                                isSelected={index === selectedTimeRangeIndex}
-                                onClick={() => {
-                                    handleTimeRangeChange(option);
-                                }}
-                                compact={isCompact}
-                            />
-                        ))}
-                    </div>
-                </div>
-
-                <div>
-                    <div className="mb-2 flex items-center">
-                        <span className={`${isCompact ? "text-sm" : "text-base"} font-medium text-gray-700`}>
-                            Track Coloring
-                        </span>
-                    </div>
-                    <div className={`grid ${isCompact ? "grid-cols-1" : "grid-cols-3"} gap-1.5`}>
-                        <MemoizedColorModeButton
-                            mode="time"
-                            current={colorMode}
-                            onChange={setColorMode}
-                            icon={<MdTimelapse className={isCompact ? "h-4 w-4" : "h-5 w-5"} />}
-                            label="Time"
-                            compact={isCompact}
-                        />
-                        <MemoizedColorModeButton
-                            mode="speed"
-                            current={colorMode}
-                            onChange={setColorMode}
-                            icon={<MdSpeed className={isCompact ? "h-4 w-4" : "h-5 w-5"} />}
-                            label="Speed"
-                            compact={isCompact}
-                        />
-                        <MemoizedColorModeButton
-                            mode="elevation"
-                            current={colorMode}
-                            onChange={setColorMode}
-                            icon={<MdTerrain className={isCompact ? "h-4 w-4" : "h-5 w-5"} />}
-                            label="Elevation"
-                            compact={isCompact}
-                        />
-                    </div>
-
-                    <div className="mt-3">
-                        <ColorLegend
-                            mode={colorMode}
-                            compact={isCompact}
-                        />
-                    </div>
-                </div>
-            </div>
+            {renderSettings(isCompact)}
         </div>
     );
 }

@@ -24,8 +24,10 @@ export default function FollowPage() {
     );
     const [isComplete, setIsComplete] = useState(false);
     const [isRefetching, setIsRefetching] = useState(false);
+    const [hasAnyData, setHasAnyData] = useState(false);
+    const [initialLoadComplete, setInitialLoadComplete] = useState(false);
     const navigate = useNavigate();
-    const { addReports, clearReports, pruneReports, pruneThreshold, setPruneThreshold, shouldRefetch } =
+    const { addReports, clearReports, pruneReports, pruneThreshold, setPruneThreshold, shouldRefetch, trips } =
         useFollowStore();
     const { addError } = useError();
 
@@ -43,6 +45,8 @@ export default function FollowPage() {
         if (firstRenderRef.current || prevDeviceKeyRef.current !== deviceKey) {
             clearReports();
             setIsComplete(false);
+            setInitialLoadComplete(false);
+            setHasAnyData(false);
             setCurrentSince(calculateHistoricalSince());
 
             firstRenderRef.current = false;
@@ -53,14 +57,30 @@ export default function FollowPage() {
     // Set up automatic pruning on an interval
     useEffect(() => {
         const pruneTimer = setInterval(() => {
+            const oldHasData = trips.some((trip) => trip.reports.length > 0);
             pruneReports();
+
+            // Check if we've pruned all data
+            const newHasData = trips.some((trip) => trip.reports.length > 0);
+
+            if (oldHasData && !newHasData) {
+                setHasAnyData(false);
+
+                addError(
+                    createError(
+                        "All location data has been pruned",
+                        "info",
+                        "No location data falls within the selected time range. Try increasing the time range.",
+                    ),
+                );
+            }
         }, PRUNE_INTERVAL);
 
         // Clean up the interval on component unmount
         return () => {
             clearInterval(pruneTimer);
         };
-    }, [pruneReports]);
+    }, [pruneReports, trips, addError]);
 
     // Check if device exists
     const {
@@ -86,6 +106,7 @@ export default function FollowPage() {
             clearReports();
             setCurrentSince(calculateHistoricalSince());
             setIsComplete(false);
+            setInitialLoadComplete(false);
         }
     }, [deviceExists, isComplete, clearReports, shouldRefetch, calculateHistoricalSince]);
 
@@ -123,11 +144,25 @@ export default function FollowPage() {
 
     // Process initial data
     useEffect(() => {
-        if (initialReports && initialReports.length > 0) {
-            addReports(initialReports);
+        if (initialReports !== undefined) {
+            setInitialLoadComplete(true);
 
-            // Only mark as complete if we got fewer reports than the limit.
-            if (initialReports.length < REPORT_LIMIT) {
+            if (initialReports.length > 0) {
+                addReports(initialReports);
+                setHasAnyData(true);
+
+                // Only mark as complete if we got fewer reports than the limit.
+                if (initialReports.length < REPORT_LIMIT) {
+                    setIsComplete(true);
+
+                    if (isRefetching) {
+                        setIsRefetching(false);
+                        setPruneThreshold(pruneThreshold);
+                    }
+                }
+
+                setCurrentSince(initialReports[initialReports.length - 1].timestamp);
+            } else {
                 setIsComplete(true);
 
                 if (isRefetching) {
@@ -135,17 +170,14 @@ export default function FollowPage() {
                     setPruneThreshold(pruneThreshold);
                 }
             }
-
-            setCurrentSince(initialReports[initialReports.length - 1].timestamp);
-        } else if (initialReports && initialReports.length === 0) {
-            setIsComplete(true);
-
-            if (isRefetching) {
-                setIsRefetching(false);
-                setPruneThreshold(pruneThreshold);
-            }
         }
     }, [addReports, initialReports, isRefetching, pruneThreshold, setPruneThreshold]);
+
+    // Update hasAnyData when trips change
+    useEffect(() => {
+        const hasReports = trips.some((trip) => trip.reports.length > 0);
+        setHasAnyData(hasReports);
+    }, [trips]);
 
     // Real-time polling for new data
     const { data: polledReports } = useSWR<Report[], Error>(
@@ -182,6 +214,7 @@ export default function FollowPage() {
     useEffect(() => {
         if (polledReports && polledReports.length > 0) {
             addReports(polledReports);
+            setHasAnyData(true);
             setCurrentSince(polledReports[polledReports.length - 1].timestamp);
         }
     }, [addReports, polledReports]);
@@ -237,7 +270,7 @@ export default function FollowPage() {
         <>
             <title>{`Following ${deviceKey ? deviceKey.toString() : ""} « Calindora Follow`}</title>
             <LoadingError
-                isLoading={isDeviceLoading || isInitialDataLoading || isRefetching}
+                isLoading={isDeviceLoading || (isInitialDataLoading && !initialLoadComplete) || isRefetching}
                 error={null}
                 loadingMessage={isRefetching ? "Loading additional historical data..." : "Loading location data..."}
             >
@@ -260,8 +293,23 @@ export default function FollowPage() {
                     </div>
 
                     {/* Map container */}
-                    <div className="h-full flex-grow">
+                    <div className="relative h-full flex-grow">
                         <FollowMap />
+
+                        {initialLoadComplete && !hasAnyData && (
+                            <div className="bg-opacity-80 absolute inset-0 flex items-center justify-center bg-white">
+                                <div className="rounded-lg bg-white p-6 text-center shadow-lg">
+                                    <h3 className="mb-2 text-xl font-semibold text-slate-700">No Data Available</h3>
+                                    <p className="mb-4 text-gray-600">
+                                        No location data was found for this device within the selected time range.
+                                    </p>
+                                    <p className="text-sm text-gray-600">
+                                        Try selecting a longer time range from the sidebar or check back later for
+                                        updates.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </LoadingError>
