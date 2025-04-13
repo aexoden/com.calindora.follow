@@ -194,31 +194,52 @@ export default function StatusPanel({ className = "", isMobile = false }: Status
         return (
             <div className={`rounded-lg bg-white shadow-md transition-all ${className}`}>
                 <div
-                    className="flex cursor-pointer items-center justify-between p-3"
+                    className="flex cursor-pointer items-center p-3"
                     onClick={() => {
                         setExpandedOnMobile(!expandedOnMobile);
                     }}
                 >
+                    {/* Main info section - visible when collapsed */}
                     <div className="flex items-center">
                         <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
                             <MdMyLocation className="h-5 w-5 text-slate-600" />
                         </div>
-                        <div>
-                            <h2 className="font-medium text-slate-800">Current Location</h2>
+                        <div className="flex-1">
+                            <h2 className="text-l font-medium text-slate-800">Current Location</h2>
                             <p className="text-sm text-gray-500">{formattedValues.formattedTime}</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center">
-                        <span className="mr-2 text-2xl font-semibold text-slate-700">{formattedValues.speedMph}</span>
-                        <div className="flex flex-col items-end">
-                            <span className="text-xs text-gray-500">MPH</span>
-                            {expandedOnMobile ? (
-                                <MdExpandMore className="h-6 w-6 text-gray-500" />
-                            ) : (
-                                <MdChevronRight className="h-6 w-6 text-gray-500" />
-                            )}
+                    {/* Middle section - compass */}
+                    <div className="flex flex-1 flex-col items-center">
+                        <div className="text-2xl">
+                            <MdNearMe
+                                className="text-slate-500"
+                                style={{
+                                    transform: `rotate(${formattedValues.bearingRotation.toString()}deg)`,
+                                }}
+                            />
                         </div>
+                        <div className="text-sm font-medium text-slate-600">{formattedValues.bearingText}</div>
+                    </div>
+
+                    {/* Right section - speed and altitude */}
+                    <div className="flex flex-col items-end">
+                        <div className="flex items-baseline">
+                            <span className="text-l font-semibold text-slate-700">{formattedValues.speedMph}</span>
+                            <span className="ml-1 text-xs text-gray-500">MPH</span>
+                        </div>
+                        <div className="flex items-baseline">
+                            <span className="text-sm font-medium text-slate-600">{formattedValues.altitudeFeet}</span>
+                            <span className="ml-1 text-xs text-gray-500">FT</span>
+                        </div>
+                    </div>
+                    <div className="ml-2 flex flex-col items-end">
+                        {expandedOnMobile ? (
+                            <MdExpandMore className="mt-1 h-5 w-5 text-gray-500" />
+                        ) : (
+                            <MdChevronRight className="mt-1 h-5 w-5 text-gray-500" />
+                        )}
                     </div>
                 </div>
 
