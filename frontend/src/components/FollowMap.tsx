@@ -232,6 +232,8 @@ function FollowMap({ className = "" }: FollowMapProps) {
                 {trips.map((trip, tripIndex) => {
                     if (trip.reports.length === 0) return null;
 
+                    console.log(trip.reports.length);
+
                     const pathStyles = allPathStyles[tripIndex];
 
                     return pathStyles.map((path) => (

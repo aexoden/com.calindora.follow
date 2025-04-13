@@ -83,10 +83,11 @@ export default function FollowPage() {
     useEffect(() => {
         if (shouldRefetch() && deviceExists && isComplete) {
             setIsRefetching(true);
+            clearReports();
             setCurrentSince(calculateHistoricalSince());
             setIsComplete(false);
         }
-    }, [deviceExists, isComplete, shouldRefetch, calculateHistoricalSince]);
+    }, [deviceExists, isComplete, clearReports, shouldRefetch, calculateHistoricalSince]);
 
     // Load initial data
     const {

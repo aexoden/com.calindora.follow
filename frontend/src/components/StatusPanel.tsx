@@ -91,8 +91,16 @@ interface StatusPanelProps {
 }
 
 export default function StatusPanel({ className = "", isMobile = false, screenSize = "lg" }: StatusPanelProps) {
-    const { lastReport, autoCenter, setAutoCenter, colorMode, setColorMode, pruneThreshold, setPruneThreshold } =
-        useFollowStore();
+    const {
+        lastReport,
+        autoCenter,
+        setAutoCenter,
+        colorMode,
+        setColorMode,
+        pruneThreshold,
+        setPruneThreshold,
+        pruneReports,
+    } = useFollowStore();
     const [expandedOnMobile, setExpandedOnMobile] = useState(false);
 
     const isCompact = !isMobile && screenSize === "md";
@@ -107,6 +115,7 @@ export default function StatusPanel({ className = "", isMobile = false, screenSi
 
     const handleTimeRangeChange = (option: TimeRangeOption) => {
         setPruneThreshold(option.value);
+        pruneReports();
     };
 
     const formattedValues = useMemo(() => {
