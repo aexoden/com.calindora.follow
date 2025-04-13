@@ -1,5 +1,5 @@
 # Build the frontend
-FROM node:20-slim AS frontend-builder
+FROM node:20-slim@sha256:5cfa999422613d3b34f766cbb814d964cbfcb76aaf3607e805da21cccb352bac AS frontend-builder
 
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
@@ -16,7 +16,7 @@ RUN pnpm install --frozen-lockfile
 COPY frontend/ ./
 RUN pnpm run build
 
-FROM rust:1.85 AS backend-builder
+FROM rust:1.85@sha256:e51d0265072d2d9d5d320f6a44dde6b9ef13653b035098febd68cce8fa7c0bc4 AS backend-builder
 
 # Build the backend
 WORKDIR /app
@@ -24,7 +24,7 @@ COPY . .
 RUN cargo install --path .
 
 # Build the runtime image
-FROM debian:bookworm-slim AS runtime
+FROM debian:bookworm-slim@sha256:b1211f6d19afd012477bd34fdcabb6b663d680e0f4b0537da6e6b0fd057a3ec3 AS runtime
 
 WORKDIR /app
 
