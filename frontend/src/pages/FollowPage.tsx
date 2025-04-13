@@ -10,6 +10,7 @@ import LoadingError from "../components/LoadingError";
 import { useNavigate } from "react-router";
 import { useError, createError } from "../hooks/useError";
 import { ApiError } from "../services/api";
+import { useWindowSize } from "../hooks/useWindowSize";
 
 const INITIAL_DATA_DURATION = 86400 * 1000 * 2; // 2 days
 const POLLING_INTERVAL = 5000; // 5 seconds
@@ -27,6 +28,8 @@ export default function FollowPage() {
     const { addReports, clearReports, pruneReports, pruneThreshold, setPruneThreshold, shouldRefetch } =
         useFollowStore();
     const { addError } = useError();
+
+    const { screenSize } = useWindowSize();
 
     const calculateHistoricalSince = useCallback(() => {
         return new Date(new Date().getTime() - pruneThreshold).toISOString();
@@ -247,15 +250,16 @@ export default function FollowPage() {
                     </div>
 
                     {/* Desktop sidebar */}
-                    <div className="hidden p-2 md:block md:w-1/4 lg:w-1/5">
+                    <div className="hidden p-2 md:block md:w-1/3 lg:w-1/3 xl:!w-96">
                         <StatusPanel
                             className="h-full"
                             isMobile={false}
+                            screenSize={screenSize === "sm" ? "md" : screenSize}
                         />
                     </div>
 
                     {/* Map container */}
-                    <div className="h-full flex-grow md:w-3/4 lg:w-4/5">
+                    <div className="h-full flex-grow">
                         <FollowMap />
                     </div>
                 </div>

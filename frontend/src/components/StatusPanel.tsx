@@ -35,9 +35,10 @@ interface ColorModeButtonProps {
     onChange: (mode: ColorMode) => void;
     icon: React.ReactNode;
     label: string;
+    compact?: boolean;
 }
 
-function ColorModeButton({ mode, current, onChange, icon, label }: ColorModeButtonProps) {
+function ColorModeButton({ mode, current, onChange, icon, label, compact = false }: ColorModeButtonProps) {
     const isActive = mode === current;
 
     return (
@@ -45,14 +46,14 @@ function ColorModeButton({ mode, current, onChange, icon, label }: ColorModeButt
             onClick={() => {
                 onChange(mode);
             }}
-            className={`flex items-center justify-center rounded-lg p-2 transition-all ${
+            className={`flex items-center ${compact ? "justify-start" : "justify-center"} rounded-lg p-2 transition-all ${
                 isActive
                     ? "bg-slate-600 text-white shadow-md"
                     : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-100"
             }`}
         >
-            <span className="mr-2">{icon}</span>
-            <span className="text-sm font-medium">{label}</span>
+            <span className={compact ? "mr-1.5" : "mr-2"}>{icon}</span>
+            <span className={`${compact ? "text-xs" : "text-sm"} font-medium`}>{label}</span>
         </button>
     );
 }
@@ -63,13 +64,14 @@ interface TimeRangeButtonProps {
     option: TimeRangeOption;
     isSelected: boolean;
     onClick: () => void;
+    compact?: boolean;
 }
 
-function TimeRangeButton({ option, isSelected, onClick }: TimeRangeButtonProps) {
+function TimeRangeButton({ option, isSelected, onClick, compact = false }: TimeRangeButtonProps) {
     return (
         <button
             onClick={onClick}
-            className={`rounded-lg px-3 py-1 text-xs transition-all ${
+            className={`rounded-lg ${compact ? "px-2 py-0.5" : "px-3 py-1"} text-xs transition-all ${
                 isSelected
                     ? "bg-slate-600 text-white shadow-md"
                     : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-100"
@@ -85,12 +87,15 @@ const MemoizedTimeRangeButton = memo(TimeRangeButton);
 interface StatusPanelProps {
     className?: string;
     isMobile?: boolean;
+    screenSize?: "sm" | "md" | "lg" | "xl" | "2xl";
 }
 
-export default function StatusPanel({ className = "", isMobile = false }: StatusPanelProps) {
+export default function StatusPanel({ className = "", isMobile = false, screenSize = "lg" }: StatusPanelProps) {
     const { lastReport, autoCenter, setAutoCenter, colorMode, setColorMode, pruneThreshold, setPruneThreshold } =
         useFollowStore();
     const [expandedOnMobile, setExpandedOnMobile] = useState(false);
+
+    const isCompact = !isMobile && screenSize === "md";
 
     // Find the closest matching time range option to the current prune threshold
     const selectedTimeRangeIndex = useMemo(() => {
@@ -353,21 +358,27 @@ export default function StatusPanel({ className = "", isMobile = false }: Status
     }
 
     return (
-        <div className={`rounded-lg bg-white p-5 shadow-md ${className}`}>
-            <div className="mb-6 flex items-center">
-                <div className="mr-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-600 text-white">
+        <div className={`rounded-lg bg-white p-4 shadow-md ${className}`}>
+            <div className={`mb-4 flex items-center ${isCompact ? "space-x-2" : "space-x-3"}`}>
+                <div
+                    className={`flex ${isCompact ? "h-10 w-10" : "h-12 w-12"} items-center justify-center rounded-full bg-slate-600 text-white`}
+                >
                     <MdMyLocation className="h-6 w-6" />
                 </div>
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-700">Calindora Follow</h1>
+                    <h1 className={`${isCompact ? "text-xl" : "text-2xl"} font-bold text-slate-700`}>
+                        Calindora Follow
+                    </h1>
                     <p className="text-sm text-gray-500">Live location tracking</p>
                 </div>
             </div>
 
-            <div className="mb-6 rounded-lg bg-slate-50 p-4">
+            <div className="mb-4 rounded-lg bg-slate-50 p-3">
                 <div className="mb-1 text-sm font-medium text-gray-500">LAST UPDATE</div>
                 <div className="flex items-baseline justify-between">
-                    <div className="text-xl font-semibold text-slate-800">{formattedValues.formattedTime}</div>
+                    <div className={`${isCompact ? "text-lg" : "text-xl"} font-semibold text-slate-800`}>
+                        {formattedValues.formattedTime}
+                    </div>
                     <div className="text-sm text-gray-500">{formattedValues.formattedDate}</div>
                 </div>
                 {formattedValues.delayText && (
@@ -375,47 +386,59 @@ export default function StatusPanel({ className = "", isMobile = false }: Status
                 )}
             </div>
 
-            <div className="mb-6 grid grid-cols-3 gap-4">
-                <div className="rounded-lg border border-gray-100 bg-white p-3 text-center shadow-sm">
+            <div className="mb-4 grid grid-cols-3 gap-2">
+                <div className="rounded-lg border border-gray-100 bg-white p-2 text-center shadow-sm">
                     <MdSpeed className="mx-auto h-5 w-5 text-slate-500" />
-                    <div className="mt-2 text-2xl font-bold text-slate-700">{formattedValues.speedMph}</div>
+                    <div className={`mt-1 ${isCompact ? "Text-xl" : "text-2xl"} font-bold text-slate-700`}>
+                        {formattedValues.speedMph}
+                    </div>
                     <div className="text-xs text-gray-500">MPH</div>
                 </div>
 
-                <div className="rounded-lg border border-gray-100 bg-white p-3 text-center shadow-sm">
+                <div className="rounded-lg border border-gray-100 bg-white p-2 text-center shadow-sm">
                     <MdHeight className="mx-auto h-5 w-5 text-slate-500" />
-                    <div className="mt-2 text-2xl font-bold text-slate-700">{formattedValues.altitudeFeet}</div>
+                    <div className={`mt-1 ${isCompact ? "Text-xl" : "text-2xl"} font-bold text-slate-700`}>
+                        {formattedValues.altitudeFeet}
+                    </div>
                     <div className="text-xs text-gray-500">FT</div>
                 </div>
 
-                <div className="rounded-lg border border-gray-100 bg-white p-3 text-center shadow-sm">
+                <div className="rounded-lg border border-gray-100 bg-white p-2 text-center shadow-sm">
                     <MdNearMe
                         className="mx-auto h-5 w-5 text-slate-500"
                         style={{ transform: `rotate(${formattedValues.bearingRotation.toString()}deg)` }}
                     />
-                    <div className="mt-2 text-2xl font-bold text-slate-700">{formattedValues.bearingText}</div>
+                    <div className={`mt-1 ${isCompact ? "Text-xl" : "text-2xl"} font-bold text-slate-700`}>
+                        {formattedValues.bearingText}
+                    </div>
                     <div className="text-xs text-gray-500">{formattedValues.bearingFormatted}°</div>
                 </div>
             </div>
 
-            <div className="mb-6 rounded-lg bg-slate-50 p-4">
-                <div className="mb-2 text-sm font-medium text-gray-500">COORDINATES</div>
-                <div className="grid grid-cols-2 gap-4">
+            <div className="mb-4 rounded-lg bg-slate-50 p-3">
+                <div className="mb-1 text-sm font-medium text-gray-500">COORDINATES</div>
+                <div className="grid grid-cols-2 gap-2">
                     <div>
                         <div className="text-xs text-gray-500">LATITUDE</div>
-                        <div className="text-lg font-medium text-slate-700">{formattedValues.latFormatted}</div>
+                        <div className={`${isCompact ? "text-base" : "text-lg"} font-medium text-slate-700`}>
+                            {formattedValues.latFormatted}
+                        </div>
                     </div>
                     <div>
                         <div className="text-xs text-gray-500">LONGITUDE</div>
-                        <div className="text-lg font-medium text-slate-700">{formattedValues.lngFormatted}</div>
+                        <div className={`${isCompact ? "text-base" : "text-lg"} font-medium text-slate-700`}>
+                            {formattedValues.lngFormatted}
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4">
                 <div>
                     <div className="mb-3 flex items-center justify-between">
-                        <span className="font-medium text-gray-700">Auto-Center Map</span>
+                        <span className={`${isCompact ? "text-sm" : "text-base"} font-medium text-gray-700`}>
+                            Auto-Center Map
+                        </span>
                         <Switch
                             checked={autoCenter}
                             onChange={setAutoCenter}
@@ -431,11 +454,13 @@ export default function StatusPanel({ className = "", isMobile = false }: Status
                 </div>
 
                 <div>
-                    <div className="mb-3 flex items-center">
+                    <div className="mb-2 flex items-center">
                         <MdAccessTime className="mr-2 h-5 w-5 text-slate-600" />
-                        <span className="font-medium text-gray-700">Time Range</span>
+                        <span className={`${isCompact ? "text-sm" : "text-base"} font-medium text-gray-700`}>
+                            Time Range
+                        </span>
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className={`grid ${isCompact ? "grid-cols-2" : "grid-cols-3"} gap-1.5`}>
                         {TIME_RANGE_OPTIONS.map((option, index) => (
                             <MemoizedTimeRangeButton
                                 key={option.label}
@@ -444,39 +469,50 @@ export default function StatusPanel({ className = "", isMobile = false }: Status
                                 onClick={() => {
                                     handleTimeRangeChange(option);
                                 }}
+                                compact={isCompact}
                             />
                         ))}
                     </div>
                 </div>
 
                 <div>
-                    <label className="mb-3 block font-medium text-gray-700">Track Coloring</label>
-                    <div className="grid grid-cols-1 gap-2">
+                    <div className="mb-2 flex items-center">
+                        <span className={`${isCompact ? "text-sm" : "text-base"} font-medium text-gray-700`}>
+                            Track Coloring
+                        </span>
+                    </div>
+                    <div className={`grid ${isCompact ? "grid-cols-1" : "grid-cols-3"} gap-1.5`}>
                         <MemoizedColorModeButton
                             mode="time"
                             current={colorMode}
                             onChange={setColorMode}
-                            icon={<MdTimelapse className="h-5 w-5" />}
+                            icon={<MdTimelapse className={isCompact ? "h-4 w-4" : "h-5 w-5"} />}
                             label="Time"
+                            compact={isCompact}
                         />
                         <MemoizedColorModeButton
                             mode="speed"
                             current={colorMode}
                             onChange={setColorMode}
-                            icon={<MdSpeed className="h-5 w-5" />}
+                            icon={<MdSpeed className={isCompact ? "h-4 w-4" : "h-5 w-5"} />}
                             label="Speed"
+                            compact={isCompact}
                         />
                         <MemoizedColorModeButton
                             mode="elevation"
                             current={colorMode}
                             onChange={setColorMode}
-                            icon={<MdTerrain className="h-5 w-5" />}
+                            icon={<MdTerrain className={isCompact ? "h-4 w-4" : "h-5 w-5"} />}
                             label="Elevation"
+                            compact={isCompact}
                         />
                     </div>
 
-                    <div className="mt-4">
-                        <ColorLegend mode={colorMode} />
+                    <div className="mt-3">
+                        <ColorLegend
+                            mode={colorMode}
+                            compact={isCompact}
+                        />
                     </div>
                 </div>
             </div>
