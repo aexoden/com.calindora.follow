@@ -1,7 +1,7 @@
 import { memo, useMemo, useState, useEffect } from "react";
 import { formatDistance } from "date-fns";
 import { useFollowStore, ColorMode, DEFAULT_PRUNE_THRESHOLD } from "../store/followStore";
-import { useError, createError } from "../hooks/useError";
+import { useToast } from "../hooks/useToast";
 import { Switch } from "@headlessui/react";
 import {
     MdAccessTime,
@@ -116,7 +116,7 @@ export default function StatusPanel({
     } = useFollowStore();
 
     const [expandedOnMobile, setExpandedOnMobile] = useState(false);
-    const { addError } = useError();
+    const toast = useToast();
 
     const isCompact = !isMobile && screenSize === "md";
 
@@ -140,15 +140,11 @@ export default function StatusPanel({
     const handleTimeRangeChange = (option: TimeRangeOption) => {
         setPruneThreshold(option.value);
         pruneReports();
-
-        addError(
-            createError(
-                `Time range changed: ${option.label}`,
-                "info",
-                isDeviceSpecific
-                    ? "This setting is device-specific and won't affect other devices."
-                    : "This is a global setting that applies to all devices.",
-            ),
+        toast.info(
+            `Time range changed: ${option.label}`,
+            isDeviceSpecific
+                ? "This setting is device-specific and won't affect other devices."
+                : "This is a global setting that applies to all devices.",
         );
     };
 
@@ -162,20 +158,14 @@ export default function StatusPanel({
         setIsDeviceSpecific(newIsDeviceSpecific);
 
         if (newIsDeviceSpecific) {
-            addError(
-                createError(
-                    "Device-specific settings enabled",
-                    "info",
-                    "All settings (map position, auto-center, colors, time range) will now be saved for this device only.",
-                ),
+            toast.info(
+                "Device-specific settings enabled",
+                "All settings (map position, auto-center, colors, time range) will now be saved for this device only.",
             );
         } else {
-            addError(
-                createError(
-                    "Global settings enabled",
-                    "info",
-                    "This device will now use global settings for maps, colors and time range.",
-                ),
+            toast.info(
+                "Global settings enabled",
+                "This device will now use global settings for maps, colors and time range.",
             );
         }
     };
@@ -251,28 +241,22 @@ export default function StatusPanel({
     const handleAutoCenterToggle = (newValue: boolean) => {
         setAutoCenter(newValue);
 
-        addError(
-            createError(
-                `Auto-center ${newValue ? "enabled" : "disabled"}`,
-                "info",
-                isDeviceSpecific
-                    ? "This setting is device-specific and won't affect other devices."
-                    : "This is a global setting that applies to all devices.",
-            ),
+        toast.info(
+            `Auto-center ${newValue ? "enabled" : "disabled"}`,
+            isDeviceSpecific
+                ? "This setting is device-specific and won't affect other devices."
+                : "This is a global setting that applies to all devices.",
         );
     };
 
     const handleColorModeChange = (mode: ColorMode) => {
         setColorMode(mode);
 
-        addError(
-            createError(
-                `Track coloring changed to ${mode}`,
-                "info",
-                isDeviceSpecific
-                    ? "This setting is device-specific and won't affect other devices."
-                    : "This is a global setting that applies to all devices.",
-            ),
+        toast.info(
+            `Track coloring changed to ${mode}`,
+            isDeviceSpecific
+                ? "This setting is device-specific and won't affect other devices."
+                : "This is a global setting that applies to all devices.",
         );
     };
 

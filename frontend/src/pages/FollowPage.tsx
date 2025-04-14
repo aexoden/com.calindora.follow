@@ -8,7 +8,7 @@ import FollowMap from "../components/FollowMap";
 import StatusPanel from "../components/StatusPanel";
 import LoadingError from "../components/LoadingError";
 import { useNavigate } from "react-router";
-import { useError, createError } from "../hooks/useError";
+import { useToast } from "../hooks/useToast";
 import { ApiError } from "../services/api";
 import { useWindowSize } from "../hooks/useWindowSize";
 
@@ -38,7 +38,7 @@ export default function FollowPage() {
         setCurrentDeviceKey,
         trips,
     } = useFollowStore();
-    const { addError } = useError();
+    const toast = useToast();
 
     const { screenSize } = useWindowSize();
 
@@ -62,12 +62,9 @@ export default function FollowPage() {
             const deviceHasCustomSettings = loadDeviceSettings(deviceKey);
 
             if (deviceHasCustomSettings) {
-                addError(
-                    createError(
-                        "Device-specific settings loading",
-                        "info",
-                        "Custom map position, colors and time ranges for this device have been loaded.",
-                    ),
+                toast.info(
+                    "Device-specific settings loading",
+                    "Custom map position, colors and time ranges for this device have been loaded.",
                 );
             }
 
@@ -76,7 +73,7 @@ export default function FollowPage() {
             firstRenderRef.current = false;
             prevDeviceKeyRef.current = deviceKey;
         }
-    }, [clearReports, deviceKey, calculateHistoricalSince, loadDeviceSettings, addError, setCurrentDeviceKey]);
+    }, [clearReports, deviceKey, calculateHistoricalSince, loadDeviceSettings, setCurrentDeviceKey, toast]);
 
     // Set up automatic pruning on an interval
     useEffect(() => {
@@ -90,12 +87,9 @@ export default function FollowPage() {
             if (oldHasData && !newHasData) {
                 setHasAnyData(false);
 
-                addError(
-                    createError(
-                        "All location data has been pruned",
-                        "info",
-                        "No location data falls within the selected time range. Try increasing the time range.",
-                    ),
+                toast.info(
+                    "All location data has been pruned",
+                    "No location data falls within the selected time range. Try increasing the time range.",
                 );
             }
         }, PRUNE_INTERVAL);
@@ -104,7 +98,7 @@ export default function FollowPage() {
         return () => {
             clearInterval(pruneTimer);
         };
-    }, [pruneReports, trips, addError]);
+    }, [pruneReports, toast, trips]);
 
     // Check if device exists
     const {
@@ -153,12 +147,9 @@ export default function FollowPage() {
         },
         {
             onError: (error) => {
-                addError(
-                    createError(
-                        "Failed to load initial location data",
-                        "error",
-                        error instanceof Error ? error.message : "Unknown error",
-                    ),
+                toast.error(
+                    "Failed to load initial location data",
+                    error instanceof Error ? error.message : "Unknown error",
                 );
             },
             revalidateOnFocus: false,
@@ -222,12 +213,9 @@ export default function FollowPage() {
             dedupingInterval: POLLING_INTERVAL - 500,
             onError: (error) => {
                 if (!(error instanceof ApiError) || error.status !== 429) {
-                    addError(
-                        createError(
-                            "Error refreshing location data",
-                            "warning",
-                            error instanceof Error ? error.message : "Unknown error",
-                        ),
+                    toast.warning(
+                        "Error refreshing location data",
+                        error instanceof Error ? error.message : "Unknown error",
                     );
                 }
             },

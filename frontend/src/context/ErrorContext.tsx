@@ -12,6 +12,7 @@ export interface AppError {
     message: string;
     severity: "error" | "warning" | "info";
     context?: string;
+    timeout?: number;
 }
 
 export const ErrorContext = createContext<ErrorContextType | undefined>(undefined);
