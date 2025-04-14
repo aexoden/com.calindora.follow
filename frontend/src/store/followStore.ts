@@ -1,8 +1,43 @@
 /* eslint-disable sort-keys */
 import { create } from "zustand";
 import { Report } from "../services/api";
+import { z } from "zod";
 
-export type ColorMode = "time" | "speed" | "elevation";
+// Define the threshold for splitting trips (2 minutes)
+const TRIP_SPLIT_THRESHOLD = 120 * 1000;
+
+// Define the default prune threshold (2 days)
+export const DEFAULT_PRUNE_THRESHOLD = 2 * 24 * 60 * 60 * 1000;
+
+const colorModeSchema = z.enum(["time", "speed", "elevation"]);
+
+const positionSchema = z.object({
+    lat: z.number(),
+    lng: z.number(),
+});
+
+const mapSettingsSchema = z.object({
+    zoom: z.number().default(16),
+    center: z.nullable(positionSchema.optional()).default(null),
+});
+
+const settingsSchema = z.object({
+    autoCenter: z.boolean().default(true),
+    colorMode: colorModeSchema.default("time"),
+    pruneThreshold: z.number().default(DEFAULT_PRUNE_THRESHOLD),
+    mapSettings: mapSettingsSchema.default({}),
+    version: z.number().default(1),
+});
+
+const deviceSettingsSchema = z.object({
+    pruneThreshold: z.number(),
+    version: z.number().default(1),
+});
+
+export type ColorMode = z.infer<typeof colorModeSchema>;
+export type MapSettings = z.infer<typeof mapSettingsSchema>;
+type Settings = z.infer<typeof settingsSchema>;
+type DeviceSettings = z.infer<typeof deviceSettingsSchema>;
 
 export interface Trip {
     reports: Report[];
@@ -15,6 +50,7 @@ interface FollowState {
     lastReport: Report | null;
     pruneThreshold: number;
     previousPruneThreshold: number;
+    mapSettings: MapSettings;
 
     setColorMode: (mode: ColorMode) => void;
     setAutoCenter: (autoCenter: boolean) => void;
@@ -23,94 +59,227 @@ interface FollowState {
     pruneReports: () => void;
     setPruneThreshold: (threshold: number) => void;
     shouldRefetch: () => boolean;
+    setMapSettings: (settings: Partial<MapSettings>) => void;
+    hasDeviceSettings: (deviceKey: string) => boolean;
+    loadDeviceSettings: (deviceKey: string) => boolean;
+    removeDeviceSettings: (deviceKey: string) => void;
+    saveDeviceSettings: (deviceKey: string) => void;
 }
 
-// Define the threshold for splitting trips (2 minutes)
-const TRIP_SPLIT_THRESHOLD = 120 * 1000;
+// Default settings
+const DEFAULT_SETTINGS = settingsSchema.parse({});
 
-// Default pruning threshold (2 days)
-export const DEFAULT_PRUNE_THRESHOLD = 2 * 24 * 60 * 60 * 1000;
+// Load settings from local storage
+const loadSettings = (): Settings => {
+    try {
+        const savedSettings = localStorage.getItem("follow.settings");
+        if (savedSettings) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const parsed = JSON.parse(savedSettings);
+            return settingsSchema.parse(parsed);
+        }
+    } catch (e) {
+        console.error("Failed to load or validate settings from local storage:", e);
+    }
 
-export const useFollowStore = create<FollowState>((set, get) => ({
-    autoCenter: true,
-    colorMode: "time",
-    lastReport: null,
-    trips: [],
-    pruneThreshold: DEFAULT_PRUNE_THRESHOLD,
-    previousPruneThreshold: DEFAULT_PRUNE_THRESHOLD,
+    return DEFAULT_SETTINGS;
+};
 
-    setColorMode: (mode) => {
-        set({ colorMode: mode });
-    },
-    setAutoCenter: (autoCenter) => {
-        set({ autoCenter });
-    },
-    setPruneThreshold: (threshold) => {
-        const currentThreshold = get().pruneThreshold;
+// Save settings to local storage
+const saveSettings = (settings: Settings) => {
+    try {
+        localStorage.setItem("follow.settings", JSON.stringify(settings));
+    } catch (e) {
+        console.error("Failed to save settings to local storage:", e);
+    }
+};
 
-        set({ pruneThreshold: threshold, previousPruneThreshold: currentThreshold });
-    },
+export const useFollowStore = create<FollowState>((set, get) => {
+    const savedSettings = loadSettings();
 
-    shouldRefetch: () => {
-        const { pruneThreshold, previousPruneThreshold } = get();
-        return pruneThreshold > previousPruneThreshold;
-    },
+    return {
+        // Combine defaults with saved settings
+        autoCenter: savedSettings.autoCenter,
+        colorMode: savedSettings.colorMode,
+        lastReport: null,
+        trips: [],
+        pruneThreshold: savedSettings.pruneThreshold,
+        previousPruneThreshold: savedSettings.pruneThreshold,
+        mapSettings: savedSettings.mapSettings,
 
-    clearReports: () => {
-        set({ trips: [], lastReport: null });
-    },
+        setColorMode: (mode) => {
+            set({ colorMode: mode });
+            const settings = get();
+            saveSettings({
+                autoCenter: settings.autoCenter,
+                colorMode: mode,
+                pruneThreshold: settings.pruneThreshold,
+                mapSettings: settings.mapSettings,
+                version: 1,
+            });
+        },
 
-    pruneReports: () => {
-        const { trips, pruneThreshold } = get();
-        const now = new Date().getTime();
-        const cutoffTime = now - pruneThreshold;
+        setAutoCenter: (autoCenter) => {
+            set({ autoCenter });
+            const settings = get();
+            saveSettings({
+                autoCenter,
+                colorMode: settings.colorMode,
+                pruneThreshold: settings.pruneThreshold,
+                mapSettings: settings.mapSettings,
+                version: 1,
+            });
+        },
 
-        const prunedTrips = trips
-            .map((trip) => {
-                const prunedReports = trip.reports.filter((report) => {
-                    const reportTime = new Date(report.timestamp).getTime();
-                    return reportTime >= cutoffTime;
-                });
+        setPruneThreshold: (threshold) => {
+            const currentThreshold = get().pruneThreshold;
 
-                return { reports: prunedReports };
-            })
-            .filter((trip) => trip.reports.length > 0);
+            set({ pruneThreshold: threshold, previousPruneThreshold: currentThreshold });
 
-        set({ trips: prunedTrips });
-    },
+            const settings = get();
+            saveSettings({
+                autoCenter: settings.autoCenter,
+                colorMode: settings.colorMode,
+                pruneThreshold: threshold,
+                mapSettings: settings.mapSettings,
+                version: 1,
+            });
+        },
 
-    addReports: (reports) => {
-        if (reports.length === 0) return;
+        setMapSettings: (newSettings) => {
+            const currentSettings = get().mapSettings;
+            const updatedSettings = { ...currentSettings, ...newSettings };
 
-        const state = get();
+            set({ mapSettings: updatedSettings });
 
-        const updatedTrips = [...state.trips];
+            const settings = get();
+            saveSettings({
+                autoCenter: settings.autoCenter,
+                colorMode: settings.colorMode,
+                pruneThreshold: settings.pruneThreshold,
+                mapSettings: updatedSettings,
+                version: 1,
+            });
+        },
 
-        for (const report of reports) {
-            if (updatedTrips.length === 0 || !updatedTrips[updatedTrips.length - 1].reports.length) {
-                updatedTrips.push({ reports: [report] });
-            } else {
-                const lastTrip = updatedTrips[updatedTrips.length - 1];
-                const lastReport = lastTrip.reports[lastTrip.reports.length - 1];
+        hasDeviceSettings: (deviceKey: string) => {
+            try {
+                const savedSettings = localStorage.getItem(`follow.settings.${deviceKey}`);
+                return savedSettings !== null;
+            } catch (e) {
+                console.error(`Failed to check device settings for device ${deviceKey} in local storage:`, e);
+                return false;
+            }
+        },
 
-                const timeDiff = new Date(report.timestamp).getTime() - new Date(lastReport.timestamp).getTime();
+        removeDeviceSettings: (deviceKey: string) => {
+            try {
+                localStorage.removeItem(`follow.settings.${deviceKey}`);
+            } catch (e) {
+                console.error(`Failed to remove device settings for device ${deviceKey} from local storage:`, e);
+            }
+        },
 
-                if (timeDiff < TRIP_SPLIT_THRESHOLD) {
-                    lastTrip.reports.push(report);
-                } else {
+        loadDeviceSettings: (deviceKey: string) => {
+            try {
+                const savedSettings = localStorage.getItem(`follow.settings.${deviceKey}`);
+
+                if (savedSettings) {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    const parsed = JSON.parse(savedSettings);
+                    const validatedSettings = deviceSettingsSchema.parse(parsed);
+
+                    set({
+                        pruneThreshold: validatedSettings.pruneThreshold,
+                        previousPruneThreshold: validatedSettings.pruneThreshold,
+                    });
+
+                    return true;
+                }
+            } catch (e) {
+                console.error(
+                    `Failed to load or validate device settings for device ${deviceKey} from local storage:`,
+                    e,
+                );
+            }
+
+            return false;
+        },
+
+        saveDeviceSettings: (deviceKey) => {
+            try {
+                const { pruneThreshold } = get();
+                const deviceSettings: DeviceSettings = {
+                    pruneThreshold,
+                    version: 1,
+                };
+                localStorage.setItem(`follow.settings.${deviceKey}`, JSON.stringify(deviceSettings));
+            } catch (e) {
+                console.error(`Failed to save device settings for device ${deviceKey} to local storage:`, e);
+            }
+        },
+
+        shouldRefetch: () => {
+            const { pruneThreshold, previousPruneThreshold } = get();
+            return pruneThreshold > previousPruneThreshold;
+        },
+
+        clearReports: () => {
+            set({ trips: [], lastReport: null });
+        },
+
+        pruneReports: () => {
+            const { trips, pruneThreshold } = get();
+            const now = new Date().getTime();
+            const cutoffTime = now - pruneThreshold;
+
+            const prunedTrips = trips
+                .map((trip) => {
+                    const prunedReports = trip.reports.filter((report) => {
+                        const reportTime = new Date(report.timestamp).getTime();
+                        return reportTime >= cutoffTime;
+                    });
+
+                    return { reports: prunedReports };
+                })
+                .filter((trip) => trip.reports.length > 0);
+
+            set({ trips: prunedTrips });
+        },
+
+        addReports: (reports) => {
+            if (reports.length === 0) return;
+
+            const state = get();
+
+            const updatedTrips = [...state.trips];
+
+            for (const report of reports) {
+                if (updatedTrips.length === 0 || !updatedTrips[updatedTrips.length - 1].reports.length) {
                     updatedTrips.push({ reports: [report] });
+                } else {
+                    const lastTrip = updatedTrips[updatedTrips.length - 1];
+                    const lastReport = lastTrip.reports[lastTrip.reports.length - 1];
+
+                    const timeDiff = new Date(report.timestamp).getTime() - new Date(lastReport.timestamp).getTime();
+
+                    if (timeDiff < TRIP_SPLIT_THRESHOLD) {
+                        lastTrip.reports.push(report);
+                    } else {
+                        updatedTrips.push({ reports: [report] });
+                    }
                 }
             }
-        }
 
-        const lastReport = reports[reports.length - 1];
+            const lastReport = reports[reports.length - 1];
 
-        set({
-            trips: updatedTrips,
-            lastReport,
-        });
+            set({
+                trips: updatedTrips,
+                lastReport,
+            });
 
-        // Prune reports after adding new ones
-        get().pruneReports();
-    },
-}));
+            // Prune reports after adding new ones
+            get().pruneReports();
+        },
+    };
+});

@@ -1,6 +1,7 @@
-import { memo, useMemo, useState } from "react";
+import { memo, useMemo, useState, useEffect } from "react";
 import { formatDistance } from "date-fns";
 import { useFollowStore, ColorMode, DEFAULT_PRUNE_THRESHOLD } from "../store/followStore";
+import { useError, createError } from "../hooks/useError";
 import { Switch } from "@headlessui/react";
 import {
     MdAccessTime,
@@ -13,6 +14,8 @@ import {
     MdTimelapse,
     MdTerrain,
     MdInfo,
+    MdDeviceHub,
+    MdPublic,
 } from "react-icons/md";
 import ColorLegend from "./ColorLegend";
 
@@ -88,10 +91,16 @@ const MemoizedTimeRangeButton = memo(TimeRangeButton);
 interface StatusPanelProps {
     className?: string;
     isMobile?: boolean;
+    deviceKey?: string;
     screenSize?: "sm" | "md" | "lg" | "xl" | "2xl";
 }
 
-export default function StatusPanel({ className = "", isMobile = false, screenSize = "lg" }: StatusPanelProps) {
+export default function StatusPanel({
+    className = "",
+    isMobile = false,
+    deviceKey,
+    screenSize = "lg",
+}: StatusPanelProps) {
     const {
         lastReport,
         autoCenter,
@@ -101,10 +110,26 @@ export default function StatusPanel({ className = "", isMobile = false, screenSi
         pruneThreshold,
         setPruneThreshold,
         pruneReports,
+        loadDeviceSettings,
+        saveDeviceSettings,
+        removeDeviceSettings,
+        hasDeviceSettings,
     } = useFollowStore();
+
     const [expandedOnMobile, setExpandedOnMobile] = useState(false);
+    const [isDeviceSpecific, setIsDeviceSpecific] = useState(false);
+    const { addError } = useError();
 
     const isCompact = !isMobile && screenSize === "md";
+
+    useEffect(() => {
+        if (deviceKey) {
+            const hasSpecificSettings = hasDeviceSettings(deviceKey);
+            setIsDeviceSpecific(hasSpecificSettings);
+        } else {
+            setIsDeviceSpecific(false);
+        }
+    }, [deviceKey, hasDeviceSettings]);
 
     // Find the closest matching time range option to the current prune threshold
     const selectedTimeRangeIndex = useMemo(() => {
@@ -116,7 +141,51 @@ export default function StatusPanel({ className = "", isMobile = false, screenSi
 
     const handleTimeRangeChange = (option: TimeRangeOption) => {
         setPruneThreshold(option.value);
+
+        if (isDeviceSpecific && deviceKey) {
+            saveDeviceSettings(deviceKey);
+            addError(
+                createError(
+                    `Device-specific time range: ${option.label}`,
+                    "info",
+                    "This time range applies only to the current device.",
+                ),
+            );
+        } else {
+            addError(
+                createError(`Global time range: ${option.label}`, "info", "This time range applies to all devices."),
+            );
+        }
+
         pruneReports();
+    };
+
+    // Toggle between global and device-specific settings
+    const handleSettingsScopeToggle = () => {
+        if (!deviceKey) return;
+
+        const newIsDeviceSpecific = !isDeviceSpecific;
+        setIsDeviceSpecific(newIsDeviceSpecific);
+
+        if (newIsDeviceSpecific) {
+            saveDeviceSettings(deviceKey);
+            addError(
+                createError(
+                    "Using device-specific time range",
+                    "info",
+                    "Changes to time range will now apply only to this device.",
+                ),
+            );
+        } else {
+            removeDeviceSettings(deviceKey);
+            addError(
+                createError(
+                    "Using global time range",
+                    "info",
+                    "This device will now use the global time range setting.",
+                ),
+            );
+        }
     };
 
     const formattedValues = useMemo(() => {
@@ -205,10 +274,38 @@ export default function StatusPanel({ className = "", isMobile = false, screenSi
 
     const renderTimeRangeSettings = (compact = false) => (
         <div>
-            <div className="mb-2 flex items-center">
-                <MdAccessTime className="mr-2 h-5 w-5 text-slate-600" />
-                <span className={`${compact ? "text-sm" : "text-base"} font-medium text-gray-700`}>Time Range</span>
+            <div className="mb-2 flex items-center justify-between">
+                <div className="flex items-center">
+                    <MdAccessTime className="mr-2 h-5 w-5 text-slate-600" />
+                    <span className={`${compact ? "text-sm" : "text-base"} font-medium text-gray-700`}>Time Range</span>
+                </div>
+
+                {/* Device-specific settings toggle - only show if deviceKey is provided */}
+                {deviceKey && (
+                    <div className="flex items-center">
+                        {isDeviceSpecific ? (
+                            <MdDeviceHub className="mr-1 h-4 w-4 text-blue-600" />
+                        ) : (
+                            <MdPublic className="mr-1 h-4 w-4 text-gray-500" />
+                        )}
+                        <span className="mr-2 text-xs text-gray-500">{isDeviceSpecific ? "Device" : "Global"}</span>
+                        <Switch
+                            checked={isDeviceSpecific}
+                            onChange={handleSettingsScopeToggle}
+                            className={`${
+                                isDeviceSpecific ? "bg-blue-600" : "bg-gray-300"
+                            } relative inline-flex h-4 w-8 items-center rounded-full`}
+                        >
+                            <span
+                                className={`${
+                                    isDeviceSpecific ? "translate-x-4" : "translate-x-1"
+                                } inline-block h-3 w-3 rounded-full bg-white transition-transform`}
+                            />
+                        </Switch>
+                    </div>
+                )}
             </div>
+
             <div className={`grid ${isMobile ? "grid-cols-3" : compact ? "grid-cols-1" : "grid-cols-3"} gap-1.5`}>
                 {TIME_RANGE_OPTIONS.map((option, index) => (
                     <MemoizedTimeRangeButton

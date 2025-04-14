@@ -27,8 +27,16 @@ export default function FollowPage() {
     const [hasAnyData, setHasAnyData] = useState(false);
     const [initialLoadComplete, setInitialLoadComplete] = useState(false);
     const navigate = useNavigate();
-    const { addReports, clearReports, pruneReports, pruneThreshold, setPruneThreshold, shouldRefetch, trips } =
-        useFollowStore();
+    const {
+        addReports,
+        clearReports,
+        pruneReports,
+        pruneThreshold,
+        setPruneThreshold,
+        shouldRefetch,
+        loadDeviceSettings,
+        trips,
+    } = useFollowStore();
     const { addError } = useError();
 
     const { screenSize } = useWindowSize();
@@ -42,17 +50,24 @@ export default function FollowPage() {
 
     // Clear reports when component mounts or deviceKey changes
     useEffect(() => {
-        if (firstRenderRef.current || prevDeviceKeyRef.current !== deviceKey) {
+        if (deviceKey && (firstRenderRef.current || prevDeviceKeyRef.current !== deviceKey)) {
             clearReports();
             setIsComplete(false);
             setInitialLoadComplete(false);
             setHasAnyData(false);
+
+            const deviceHasCustomSettings = loadDeviceSettings(deviceKey);
+
+            if (deviceHasCustomSettings) {
+                console.log("Loaded custom settings for device:", deviceKey);
+            }
+
             setCurrentSince(calculateHistoricalSince());
 
             firstRenderRef.current = false;
             prevDeviceKeyRef.current = deviceKey;
         }
-    }, [clearReports, deviceKey, calculateHistoricalSince]);
+    }, [clearReports, deviceKey, calculateHistoricalSince, loadDeviceSettings]);
 
     // Set up automatic pruning on an interval
     useEffect(() => {
@@ -280,6 +295,7 @@ export default function FollowPage() {
                         <StatusPanel
                             className="m-2"
                             isMobile={true}
+                            deviceKey={deviceKey}
                         />
                     </div>
 
@@ -289,6 +305,7 @@ export default function FollowPage() {
                             className="h-full"
                             isMobile={false}
                             screenSize={screenSize === "sm" ? "md" : screenSize}
+                            deviceKey={deviceKey}
                         />
                     </div>
 

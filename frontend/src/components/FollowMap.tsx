@@ -49,24 +49,88 @@ function FollowMap({ className = "" }: FollowMapProps) {
     });
 
     const [map, setMap] = useState<google.maps.Map | null>(null);
-    const { trips, lastReport, autoCenter, colorMode, pruneThreshold } = useFollowStore();
+    const [initialLoadDone, setInitialLoadDone] = useState(false);
 
-    const onLoad = useCallback((map: google.maps.Map) => {
-        setMap(map);
-    }, []);
+    const { trips, lastReport, autoCenter, colorMode, pruneThreshold, mapSettings, setMapSettings } = useFollowStore();
+
+    const saveMapState = useCallback(() => {
+        if (!map || !initialLoadDone) return;
+
+        const center = map.getCenter();
+        const zoom = map.getZoom();
+
+        if (center && zoom !== undefined) {
+            setMapSettings({
+                center: autoCenter ? null : { lat: center.lat(), lng: center.lng() },
+                zoom: zoom,
+            });
+        }
+    }, [map, initialLoadDone, autoCenter, setMapSettings]);
+
+    useEffect(() => {
+        if (!map || !initialLoadDone) return;
+
+        let timeoutId: number | undefined;
+
+        const handleMapChanged = () => {
+            if (timeoutId) {
+                window.clearTimeout(timeoutId);
+            }
+
+            timeoutId = window.setTimeout(saveMapState, 500);
+        };
+
+        // Listen for map changes
+        const zoomListener = map.addListener("zoom_changed", handleMapChanged);
+        const centerListener = map.addListener("center_changed", handleMapChanged);
+
+        return () => {
+            if (timeoutId) {
+                window.clearTimeout(timeoutId);
+            }
+
+            google.maps.event.removeListener(zoomListener);
+            google.maps.event.removeListener(centerListener);
+        };
+    }, [map, initialLoadDone, saveMapState]);
+
+    const onLoad = useCallback(
+        (map: google.maps.Map) => {
+            // Apply saved settings to map
+            if (mapSettings.center) {
+                map.setCenter(mapSettings.center);
+            } else if (lastReport) {
+                map.setCenter({ lat: lastReport.latitude, lng: lastReport.longitude });
+            }
+
+            if (mapSettings.zoom) {
+                map.setZoom(mapSettings.zoom);
+            }
+
+            setMap(map);
+
+            // Mark initial load as complete after a small delay to prevent initial settings from being saved immediately.
+            setTimeout(() => {
+                setInitialLoadDone(true);
+            }, 500);
+        },
+        [mapSettings, lastReport],
+    );
 
     const onUnmount = useCallback(() => {
         setMap(null);
+        setInitialLoadDone(false);
     }, []);
 
+    // Handle auto-centering
     useEffect(() => {
-        if (!map || !lastReport || !autoCenter) return;
+        if (!map || !lastReport || !autoCenter || !initialLoadDone) return;
 
         const lat = lastReport.latitude;
         const lng = lastReport.longitude;
 
         map.panTo({ lat, lng });
-    }, [map, lastReport, autoCenter]);
+    }, [map, lastReport, autoCenter, initialLoadDone]);
 
     const getPathStyles = useCallback(
         (trip: { reports: Report[] }) => {
@@ -192,8 +256,6 @@ function FollowMap({ className = "" }: FollowMapProps) {
     );
 
     // Memoize path styles
-    // TODO: It would be nice to memoize each trip individually, but it may be moot if we switch to maintaining the
-    // polylines manually.
     const allPathStyles = useMemo(() => {
         return trips.map((trip) => {
             if (trip.reports.length === 0) return [];
@@ -207,7 +269,7 @@ function FollowMap({ className = "" }: FollowMapProps) {
         <div className={`h-full ${className}`}>
             <GoogleMap
                 mapContainerStyle={containerStyle}
-                zoom={16}
+                zoom={mapSettings.zoom}
                 onLoad={onLoad}
                 onUnmount={onUnmount}
                 options={{ fullscreenControl: false, mapTypeControl: true, streetViewControl: false }}
@@ -231,8 +293,6 @@ function FollowMap({ className = "" }: FollowMapProps) {
 
                 {trips.map((trip, tripIndex) => {
                     if (trip.reports.length === 0) return null;
-
-                    console.log(trip.reports.length);
 
                     const pathStyles = allPathStyles[tripIndex];
 
