@@ -4,10 +4,10 @@ import { ColorMode } from "../store/followStore";
 interface ColorLegendProps {
     mode: ColorMode;
     className?: string;
-    compact?: boolean;
+    isCompact?: boolean;
 }
 
-function ColorLegend({ mode, className = "", compact = false }: ColorLegendProps) {
+function ColorLegend({ mode, className = "", isCompact = false }: ColorLegendProps) {
     const config = {
         elevation: {
             description: "Track colored by elevation",
@@ -28,7 +28,7 @@ function ColorLegend({ mode, className = "", compact = false }: ColorLegendProps
 
     const { gradient, labels, description } = config[mode];
 
-    if (compact) {
+    if (isCompact) {
         return (
             <div className={`text-xs ${className}`}>
                 <div
