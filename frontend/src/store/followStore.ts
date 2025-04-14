@@ -69,6 +69,7 @@ interface FollowState {
     loadDeviceSettings: (deviceKey: string) => boolean;
     removeDeviceSettings: (deviceKey: string) => void;
     saveDeviceSettings: (deviceKey: string) => void;
+    resetSettings: (deviceKey?: string | null) => void;
     setIsDeviceSpecific: (isDeviceSpecific: boolean, deviceKey?: string | null) => void;
     setCurrentDeviceKey: (deviceKey: string | null) => void;
 }
@@ -286,6 +287,27 @@ export const useFollowStore = create<FollowState>((set, get) => {
                 localStorage.setItem(`follow.settings.${deviceKey}`, JSON.stringify(deviceSettings));
             } catch (e) {
                 console.error(`Failed to save device settings for device ${deviceKey} to local storage:`, e);
+            }
+        },
+
+        resetSettings: (deviceKey = null) => {
+            const { isDeviceSpecific } = get();
+
+            set({
+                autoCenter: DEFAULT_SETTINGS.autoCenter,
+                colorMode: DEFAULT_SETTINGS.colorMode,
+                pruneThreshold: DEFAULT_SETTINGS.pruneThreshold,
+                mapSettings: DEFAULT_SETTINGS.mapSettings,
+            });
+
+            if (deviceKey) {
+                if (isDeviceSpecific) {
+                    get().saveDeviceSettings(deviceKey);
+                } else {
+                    saveSettings(DEFAULT_SETTINGS);
+                }
+            } else {
+                saveSettings(DEFAULT_SETTINGS);
             }
         },
 

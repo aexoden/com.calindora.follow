@@ -2,7 +2,7 @@ import { memo, useMemo, useState, useEffect } from "react";
 import { formatDistance } from "date-fns";
 import { useFollowStore, ColorMode, DEFAULT_PRUNE_THRESHOLD } from "../store/followStore";
 import { useToast } from "../hooks/useToast";
-import { Switch } from "@headlessui/react";
+import { Dialog, DialogPanel, DialogTitle, Switch } from "@headlessui/react";
 import {
     MdAccessTime,
     MdChevronRight,
@@ -10,6 +10,7 @@ import {
     MdHeight,
     MdMyLocation,
     MdNearMe,
+    MdRefresh,
     MdSpeed,
     MdTimelapse,
     MdTerrain,
@@ -54,6 +55,28 @@ interface FormattedValues {
 }
 
 // Sub-components
+const ResetButton = memo(
+    ({
+        onReset,
+        isCompact = false,
+        isMobile = false,
+    }: {
+        onReset: () => void;
+        isCompact?: boolean;
+        isMobile?: boolean;
+    }) => {
+        return (
+            <button
+                onClick={onReset}
+                className={`mt-2 flex w-full items-center justify-center rounded-lg border border-gray-200 ${isCompact || isMobile ? "py-1.5 text-xs" : "py-2 text-sm"} bg-white px-3 text-gray-700 transition-colors hover:bg-gray-50`}
+            >
+                <MdRefresh className={`${isCompact || isMobile ? "h-3.5 w-3.5" : "h-4 w-4"} mr-1.5 text-gray-500`} />
+                <span>Reset to Defaults</span>
+            </button>
+        );
+    },
+);
+
 const ToggleSwitch = memo(
     ({
         enabled,
@@ -548,6 +571,7 @@ const SettingsSection = ({
     handleTimeRangeChange,
     colorMode,
     handleColorModeChange,
+    handleReset,
     isCompact = false,
     isMobile = false,
 }: {
@@ -560,6 +584,7 @@ const SettingsSection = ({
     handleTimeRangeChange: (option: (typeof TIME_RANGE_OPTIONS)[0]) => void;
     colorMode: ColorMode;
     handleColorModeChange: (mode: ColorMode) => void;
+    handleReset: () => void;
     isCompact?: boolean;
     isMobile?: boolean;
 }) => (
@@ -596,6 +621,14 @@ const SettingsSection = ({
             isCompact={isCompact}
             isMobile={isMobile}
         />
+
+        <div>
+            <ResetButton
+                onReset={handleReset}
+                isCompact={isCompact}
+                isMobile={isMobile}
+            />
+        </div>
     </div>
 );
 
@@ -618,9 +651,12 @@ export default function StatusPanel({
         hasDeviceSettings,
         isDeviceSpecific,
         setIsDeviceSpecific,
+        resetSettings,
     } = useFollowStore();
 
     const [expandedOnMobile, setExpandedOnMobile] = useState(false);
+    const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+
     const toast = useToast();
 
     const isCompact = !isMobile && screenSize === "md";
@@ -767,6 +803,66 @@ export default function StatusPanel({
         }
     };
 
+    const handleResetSettings = () => {
+        setIsResetDialogOpen(true);
+    };
+
+    const confirmReset = () => {
+        resetSettings(deviceKey);
+        setIsResetDialogOpen(false);
+
+        toast.info(
+            "Settings reset to defaults",
+            isDeviceSpecific ? "Device-specific settings have been reset." : "Global settings have been reset.",
+        );
+    };
+
+    const ResetConfirmationDialog = () => (
+        <Dialog
+            open={isResetDialogOpen}
+            onClose={() => {
+                setIsResetDialogOpen(false);
+            }}
+            className="relative z-50"
+        >
+            <div
+                className="fixed inset-0 bg-black/30"
+                aria-hidden="true"
+            />
+            <div className="fixed inset-0 flex items-center justify-center p-4">
+                <DialogPanel className="mx-auto max-w-sm rounded-lg bg-white p-6 shadow-xl">
+                    <DialogTitle className="text-lg font-medium text-gray-900">Reset Settings</DialogTitle>
+
+                    <p className="mt-2 text-sm text-gray-500">
+                        Are you sure you want to reset all settings to their default values?
+                        {isDeviceSpecific && deviceKey
+                            ? " This will only affect settings for this device."
+                            : " This will affect global settings for all devices."}
+                    </p>
+
+                    <div className="mt-4 flex justify-end space-x-2">
+                        <button
+                            type="button"
+                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            onClick={() => {
+                                setIsResetDialogOpen(false);
+                            }}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                            onClick={confirmReset}
+                        >
+                            Reset
+                        </button>
+                    </div>
+                </DialogPanel>
+            </div>
+        </Dialog>
+    );
+
     // Mobile view
     if (isMobile) {
         return (
@@ -795,11 +891,13 @@ export default function StatusPanel({
                             handleTimeRangeChange={handleTimeRangeChange}
                             colorMode={colorMode}
                             handleColorModeChange={handleColorModeChange}
+                            handleReset={handleResetSettings}
                             isCompact={true}
                             isMobile={true}
                         />
                     </div>
                 </div>
+                <ResetConfirmationDialog />
             </div>
         );
     }
@@ -821,8 +919,11 @@ export default function StatusPanel({
                     handleTimeRangeChange={handleTimeRangeChange}
                     colorMode={colorMode}
                     handleColorModeChange={handleColorModeChange}
+                    handleReset={handleResetSettings}
                     isCompact={isCompact}
                 />
+
+                <ResetConfirmationDialog />
             </div>
         );
     }
@@ -854,8 +955,11 @@ export default function StatusPanel({
                 handleTimeRangeChange={handleTimeRangeChange}
                 colorMode={colorMode}
                 handleColorModeChange={handleColorModeChange}
+                handleReset={handleResetSettings}
                 isCompact={isCompact}
             />
+
+            <ResetConfirmationDialog />
         </div>
     );
 }
