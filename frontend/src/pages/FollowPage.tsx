@@ -35,6 +35,7 @@ export default function FollowPage() {
         setPruneThreshold,
         shouldRefetch,
         loadDeviceSettings,
+        setCurrentDeviceKey,
         trips,
     } = useFollowStore();
     const { addError } = useError();
@@ -56,10 +57,18 @@ export default function FollowPage() {
             setInitialLoadComplete(false);
             setHasAnyData(false);
 
+            setCurrentDeviceKey(deviceKey);
+
             const deviceHasCustomSettings = loadDeviceSettings(deviceKey);
 
             if (deviceHasCustomSettings) {
-                console.log("Loaded custom settings for device:", deviceKey);
+                addError(
+                    createError(
+                        "Device-specific settings loading",
+                        "info",
+                        "Custom map position, colors and time ranges for this device have been loaded.",
+                    ),
+                );
             }
 
             setCurrentSince(calculateHistoricalSince());
@@ -67,7 +76,7 @@ export default function FollowPage() {
             firstRenderRef.current = false;
             prevDeviceKeyRef.current = deviceKey;
         }
-    }, [clearReports, deviceKey, calculateHistoricalSince, loadDeviceSettings]);
+    }, [clearReports, deviceKey, calculateHistoricalSince, loadDeviceSettings, addError, setCurrentDeviceKey]);
 
     // Set up automatic pruning on an interval
     useEffect(() => {

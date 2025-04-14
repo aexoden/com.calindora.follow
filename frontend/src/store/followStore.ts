@@ -30,7 +30,10 @@ const settingsSchema = z.object({
 });
 
 const deviceSettingsSchema = z.object({
+    autoCenter: z.boolean(),
+    colorMode: colorModeSchema,
     pruneThreshold: z.number(),
+    mapSettings: mapSettingsSchema,
     version: z.number().default(1),
 });
 
@@ -51,6 +54,8 @@ interface FollowState {
     pruneThreshold: number;
     previousPruneThreshold: number;
     mapSettings: MapSettings;
+    isDeviceSpecific: boolean;
+    currentDeviceKey: string | null;
 
     setColorMode: (mode: ColorMode) => void;
     setAutoCenter: (autoCenter: boolean) => void;
@@ -64,6 +69,8 @@ interface FollowState {
     loadDeviceSettings: (deviceKey: string) => boolean;
     removeDeviceSettings: (deviceKey: string) => void;
     saveDeviceSettings: (deviceKey: string) => void;
+    setIsDeviceSpecific: (isDeviceSpecific: boolean, deviceKey?: string | null) => void;
+    setCurrentDeviceKey: (deviceKey: string | null) => void;
 }
 
 // Default settings
@@ -106,60 +113,115 @@ export const useFollowStore = create<FollowState>((set, get) => {
         pruneThreshold: savedSettings.pruneThreshold,
         previousPruneThreshold: savedSettings.pruneThreshold,
         mapSettings: savedSettings.mapSettings,
+        isDeviceSpecific: false,
+        currentDeviceKey: null,
+
+        setCurrentDeviceKey: (deviceKey) => {
+            set({ currentDeviceKey: deviceKey });
+
+            if (deviceKey) {
+                const isDeviceSpecific = get().hasDeviceSettings(deviceKey);
+                set({ isDeviceSpecific });
+            } else {
+                set({ isDeviceSpecific: false });
+            }
+        },
+
+        setIsDeviceSpecific: (isDeviceSpecific, deviceKey = null) => {
+            set({ isDeviceSpecific });
+
+            if (isDeviceSpecific && deviceKey) {
+                get().saveDeviceSettings(deviceKey);
+            } else if (deviceKey) {
+                get().removeDeviceSettings(deviceKey);
+
+                const globalSettings = loadSettings();
+                set({
+                    autoCenter: globalSettings.autoCenter,
+                    colorMode: globalSettings.colorMode,
+                    pruneThreshold: globalSettings.pruneThreshold,
+                    mapSettings: globalSettings.mapSettings,
+                });
+            }
+        },
 
         setColorMode: (mode) => {
             set({ colorMode: mode });
-            const settings = get();
-            saveSettings({
-                autoCenter: settings.autoCenter,
-                colorMode: mode,
-                pruneThreshold: settings.pruneThreshold,
-                mapSettings: settings.mapSettings,
-                version: 1,
-            });
+
+            const { isDeviceSpecific, currentDeviceKey } = get();
+
+            if (isDeviceSpecific && currentDeviceKey) {
+                get().saveDeviceSettings(currentDeviceKey);
+            } else {
+                const settings = get();
+                saveSettings({
+                    autoCenter: settings.autoCenter,
+                    colorMode: mode,
+                    pruneThreshold: settings.pruneThreshold,
+                    mapSettings: settings.mapSettings,
+                    version: 1,
+                });
+            }
         },
 
         setAutoCenter: (autoCenter) => {
             set({ autoCenter });
-            const settings = get();
-            saveSettings({
-                autoCenter,
-                colorMode: settings.colorMode,
-                pruneThreshold: settings.pruneThreshold,
-                mapSettings: settings.mapSettings,
-                version: 1,
-            });
+
+            const { isDeviceSpecific, currentDeviceKey } = get();
+
+            if (isDeviceSpecific && currentDeviceKey) {
+                get().saveDeviceSettings(currentDeviceKey);
+            } else {
+                const settings = get();
+                saveSettings({
+                    autoCenter,
+                    colorMode: settings.colorMode,
+                    pruneThreshold: settings.pruneThreshold,
+                    mapSettings: settings.mapSettings,
+                    version: 1,
+                });
+            }
         },
 
         setPruneThreshold: (threshold) => {
             const currentThreshold = get().pruneThreshold;
-
             set({ pruneThreshold: threshold, previousPruneThreshold: currentThreshold });
 
-            const settings = get();
-            saveSettings({
-                autoCenter: settings.autoCenter,
-                colorMode: settings.colorMode,
-                pruneThreshold: threshold,
-                mapSettings: settings.mapSettings,
-                version: 1,
-            });
+            const { isDeviceSpecific, currentDeviceKey } = get();
+
+            if (isDeviceSpecific && currentDeviceKey) {
+                get().saveDeviceSettings(currentDeviceKey);
+            } else {
+                const settings = get();
+                saveSettings({
+                    autoCenter: settings.autoCenter,
+                    colorMode: settings.colorMode,
+                    pruneThreshold: threshold,
+                    mapSettings: settings.mapSettings,
+                    version: 1,
+                });
+            }
         },
 
         setMapSettings: (newSettings) => {
             const currentSettings = get().mapSettings;
             const updatedSettings = { ...currentSettings, ...newSettings };
-
             set({ mapSettings: updatedSettings });
 
-            const settings = get();
-            saveSettings({
-                autoCenter: settings.autoCenter,
-                colorMode: settings.colorMode,
-                pruneThreshold: settings.pruneThreshold,
-                mapSettings: updatedSettings,
-                version: 1,
-            });
+            const { isDeviceSpecific, currentDeviceKey } = get();
+
+            if (isDeviceSpecific && currentDeviceKey) {
+                get().saveDeviceSettings(currentDeviceKey);
+            } else {
+                const settings = get();
+                saveSettings({
+                    autoCenter: settings.autoCenter,
+                    colorMode: settings.colorMode,
+                    pruneThreshold: settings.pruneThreshold,
+                    mapSettings: updatedSettings,
+                    version: 1,
+                });
+            }
         },
 
         hasDeviceSettings: (deviceKey: string) => {
@@ -190,8 +252,13 @@ export const useFollowStore = create<FollowState>((set, get) => {
                     const validatedSettings = deviceSettingsSchema.parse(parsed);
 
                     set({
+                        autoCenter: validatedSettings.autoCenter,
+                        colorMode: validatedSettings.colorMode,
                         pruneThreshold: validatedSettings.pruneThreshold,
                         previousPruneThreshold: validatedSettings.pruneThreshold,
+                        mapSettings: validatedSettings.mapSettings,
+                        isDeviceSpecific: true,
+                        currentDeviceKey: deviceKey,
                     });
 
                     return true;
@@ -208,9 +275,12 @@ export const useFollowStore = create<FollowState>((set, get) => {
 
         saveDeviceSettings: (deviceKey) => {
             try {
-                const { pruneThreshold } = get();
+                const { autoCenter, colorMode, pruneThreshold, mapSettings } = get();
                 const deviceSettings: DeviceSettings = {
+                    autoCenter,
+                    colorMode,
                     pruneThreshold,
+                    mapSettings,
                     version: 1,
                 };
                 localStorage.setItem(`follow.settings.${deviceKey}`, JSON.stringify(deviceSettings));

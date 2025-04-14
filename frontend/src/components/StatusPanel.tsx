@@ -110,14 +110,12 @@ export default function StatusPanel({
         pruneThreshold,
         setPruneThreshold,
         pruneReports,
-        loadDeviceSettings,
-        saveDeviceSettings,
-        removeDeviceSettings,
         hasDeviceSettings,
+        isDeviceSpecific,
+        setIsDeviceSpecific,
     } = useFollowStore();
 
     const [expandedOnMobile, setExpandedOnMobile] = useState(false);
-    const [isDeviceSpecific, setIsDeviceSpecific] = useState(false);
     const { addError } = useError();
 
     const isCompact = !isMobile && screenSize === "md";
@@ -129,7 +127,7 @@ export default function StatusPanel({
         } else {
             setIsDeviceSpecific(false);
         }
-    }, [deviceKey, hasDeviceSettings]);
+    }, [deviceKey, hasDeviceSettings, setIsDeviceSpecific]);
 
     // Find the closest matching time range option to the current prune threshold
     const selectedTimeRangeIndex = useMemo(() => {
@@ -141,23 +139,17 @@ export default function StatusPanel({
 
     const handleTimeRangeChange = (option: TimeRangeOption) => {
         setPruneThreshold(option.value);
-
-        if (isDeviceSpecific && deviceKey) {
-            saveDeviceSettings(deviceKey);
-            addError(
-                createError(
-                    `Device-specific time range: ${option.label}`,
-                    "info",
-                    "This time range applies only to the current device.",
-                ),
-            );
-        } else {
-            addError(
-                createError(`Global time range: ${option.label}`, "info", "This time range applies to all devices."),
-            );
-        }
-
         pruneReports();
+
+        addError(
+            createError(
+                `Time range changed: ${option.label}`,
+                "info",
+                isDeviceSpecific
+                    ? "This setting is device-specific and won't affect other devices."
+                    : "This is a global setting that applies to all devices.",
+            ),
+        );
     };
 
     // Toggle between global and device-specific settings
@@ -165,24 +157,24 @@ export default function StatusPanel({
         if (!deviceKey) return;
 
         const newIsDeviceSpecific = !isDeviceSpecific;
+
+        setIsDeviceSpecific(newIsDeviceSpecific, deviceKey);
         setIsDeviceSpecific(newIsDeviceSpecific);
 
         if (newIsDeviceSpecific) {
-            saveDeviceSettings(deviceKey);
             addError(
                 createError(
-                    "Using device-specific time range",
+                    "Device-specific settings enabled",
                     "info",
-                    "Changes to time range will now apply only to this device.",
+                    "All settings (map position, auto-center, colors, time range) will now be saved for this device only.",
                 ),
             );
         } else {
-            removeDeviceSettings(deviceKey);
             addError(
                 createError(
-                    "Using global time range",
+                    "Global settings enabled",
                     "info",
-                    "This device will now use the global time range setting.",
+                    "This device will now use global settings for maps, colors and time range.",
                 ),
             );
         }
@@ -256,6 +248,34 @@ export default function StatusPanel({
         };
     }, [lastReport]);
 
+    const handleAutoCenterToggle = (newValue: boolean) => {
+        setAutoCenter(newValue);
+
+        addError(
+            createError(
+                `Auto-center ${newValue ? "enabled" : "disabled"}`,
+                "info",
+                isDeviceSpecific
+                    ? "This setting is device-specific and won't affect other devices."
+                    : "This is a global setting that applies to all devices.",
+            ),
+        );
+    };
+
+    const handleColorModeChange = (mode: ColorMode) => {
+        setColorMode(mode);
+
+        addError(
+            createError(
+                `Track coloring changed to ${mode}`,
+                "info",
+                isDeviceSpecific
+                    ? "This setting is device-specific and won't affect other devices."
+                    : "This is a global setting that applies to all devices.",
+            ),
+        );
+    };
+
     const renderNoDataAlert = () => (
         <div>
             <div>
@@ -272,16 +292,15 @@ export default function StatusPanel({
         </div>
     );
 
-    const renderTimeRangeSettings = (compact = false) => (
-        <div>
-            <div className="mb-2 flex items-center justify-between">
-                <div className="flex items-center">
-                    <MdAccessTime className="mr-2 h-5 w-5 text-slate-600" />
-                    <span className={`${compact ? "text-sm" : "text-base"} font-medium text-gray-700`}>Time Range</span>
-                </div>
+    const renderSettingsToggle = (compact = false) => {
+        if (!deviceKey) return null;
 
-                {/* Device-specific settings toggle - only show if deviceKey is provided */}
-                {deviceKey && (
+        return (
+            <div className={`mb-4 rounded-lg bg-slate-50 p-3 ${compact ? "text-sm" : ""}`}>
+                <div className="mb-2 flex items-center justify-between">
+                    <div className="flex items-center">
+                        <span className="font-medium text-gray-700">Settings Mode</span>
+                    </div>
                     <div className="flex items-center">
                         {isDeviceSpecific ? (
                             <MdDeviceHub className="mr-1 h-4 w-4 text-blue-600" />
@@ -303,7 +322,23 @@ export default function StatusPanel({
                             />
                         </Switch>
                     </div>
-                )}
+                </div>
+                <p className="text-xs text-gray-500">
+                    {isDeviceSpecific
+                        ? "Device-specific: All settings apply only to this device."
+                        : "Global: Settings apply to all devices."}
+                </p>
+            </div>
+        );
+    };
+
+    const renderTimeRangeSettings = (compact = false) => (
+        <div>
+            <div className="mb-2 flex items-center justify-between">
+                <div className="flex items-center">
+                    <MdAccessTime className="mr-2 h-5 w-5 text-slate-600" />
+                    <span className={`${compact ? "text-sm" : "text-base"} font-medium text-gray-700`}>Time Range</span>
+                </div>
             </div>
 
             <div className={`grid ${isMobile ? "grid-cols-3" : compact ? "grid-cols-1" : "grid-cols-3"} gap-1.5`}>
@@ -331,7 +366,7 @@ export default function StatusPanel({
                 <MemoizedColorModeButton
                     mode="time"
                     current={colorMode}
-                    onChange={setColorMode}
+                    onChange={handleColorModeChange}
                     icon={<MdTimelapse className={compact ? "h-4 w-4" : "h-5 w-5"} />}
                     label="Time"
                     compact={compact}
@@ -339,7 +374,7 @@ export default function StatusPanel({
                 <MemoizedColorModeButton
                     mode="speed"
                     current={colorMode}
-                    onChange={setColorMode}
+                    onChange={handleColorModeChange}
                     icon={<MdSpeed className={compact ? "h-4 w-4" : "h-5 w-5"} />}
                     label="Speed"
                     compact={compact}
@@ -347,7 +382,7 @@ export default function StatusPanel({
                 <MemoizedColorModeButton
                     mode="elevation"
                     current={colorMode}
-                    onChange={setColorMode}
+                    onChange={handleColorModeChange}
                     icon={<MdTerrain className={compact ? "h-4 w-4" : "h-5 w-5"} />}
                     label="Elevation"
                     compact={compact}
@@ -370,7 +405,7 @@ export default function StatusPanel({
                 </span>
                 <Switch
                     checked={autoCenter}
-                    onChange={setAutoCenter}
+                    onChange={handleAutoCenterToggle}
                     className={`${
                         autoCenter ? "bg-slate-600" : "bg-gray-300"
                     } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:outline-none`}
@@ -385,6 +420,7 @@ export default function StatusPanel({
 
     const renderSettings = (compact = false) => (
         <div className="space-y-4">
+            {deviceKey && renderSettingsToggle(compact)}
             {renderAutoCenterToggle(compact)}
             {renderTimeRangeSettings(compact)}
             {renderColorModeSettings(compact)}
@@ -494,7 +530,7 @@ export default function StatusPanel({
 
                 <div
                     className={`overflow-hidden transition-all duration-300 ${
-                        expandedOnMobile ? "max-h-96" : "max-h-0"
+                        expandedOnMobile ? "max-h-112" : "max-h-0"
                     }`}
                 >
                     <div className="border-t border-gray-100 p-3">
