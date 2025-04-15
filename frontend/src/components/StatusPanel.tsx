@@ -261,7 +261,7 @@ const MobileHeader = ({
         </div>
 
         {formattedValues && (
-            <div className="mr-5 flex flex-col items-center">
+            <div className="mr-3 flex flex-col items-center">
                 <div className="text-2xl">
                     <MdNearMe
                         className="text-slate-500"
@@ -287,12 +287,15 @@ const MobileHeader = ({
             </div>
         )}
 
-        <div className={`${formattedValues ? "ml-2" : "ml-auto"} flex flex-col items-end`}>
-            {expanded ? (
-                <MdExpandMore className="mt-1 h-5 w-5 text-gray-500" />
-            ) : (
-                <MdChevronRight className="mt-1 h-5 w-5 text-gray-500" />
-            )}
+        <div className={`${formattedValues ? "ml-3" : "ml-auto"} flex flex-col items-center`}>
+            <div className="rounded-full bg-slate-100 p-1">
+                {expanded ? (
+                    <MdExpandMore className="h-6 w-6 text-slate-600" />
+                ) : (
+                    <MdChevronRight className="h-6 w-6 text-slate-600" />
+                )}
+            </div>
+            <span className="mt-0.5 text-xs text-slate-500">{expanded ? "Less" : "More"}</span>
         </div>
     </div>
 );
@@ -677,6 +680,25 @@ export default function StatusPanel({
             : TIME_RANGE_OPTIONS.findIndex((option) => option.value === DEFAULT_PRUNE_THRESHOLD);
     }, [pruneThreshold]);
 
+    const [hasSeenMobileHint, setHasSeenMobileHint] = useState(() => {
+        try {
+            return localStorage.getItem("follow.mobileHint") === "true";
+        } catch (_e) {
+            return false;
+        }
+    });
+
+    useEffect(() => {
+        if (isMobile && expandedOnMobile && !hasSeenMobileHint) {
+            try {
+                localStorage.setItem("follow.mobileHint", "true");
+                setHasSeenMobileHint(true);
+            } catch (_e) {
+                // Ignore storage errors
+            }
+        }
+    }, [isMobile, expandedOnMobile, hasSeenMobileHint]);
+
     // Format values for display
     const formattedValues = useMemo(() => {
         if (!lastReport) return null;
@@ -869,6 +891,15 @@ export default function StatusPanel({
                     expanded={expandedOnMobile}
                     setExpanded={setExpandedOnMobile}
                 />
+
+                {!expandedOnMobile && !hasSeenMobileHint && (
+                    <div className="animate-bounce bg-slate-50 p-2 text-center text-xs text-slate-600">
+                        <div className="flex items-center justify-center">
+                            <span>Tap More button to see settings</span>
+                            <MdChevronRight className="ml-1 h-4 w-4" />
+                        </div>
+                    </div>
+                )}
 
                 <div
                     className={`overflow-hidden transition-all duration-300 ${
