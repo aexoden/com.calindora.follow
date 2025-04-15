@@ -648,10 +648,10 @@ export default function StatusPanel({
         pruneThreshold,
         setPruneThreshold,
         pruneReports,
-        hasDeviceSettings,
-        isDeviceSpecific,
-        setIsDeviceSpecific,
         resetSettings,
+        settingsDeviceKey,
+        changeDevice,
+        setSettingsDeviceKey,
     } = useFollowStore();
 
     const [expandedOnMobile, setExpandedOnMobile] = useState(false);
@@ -660,16 +660,14 @@ export default function StatusPanel({
     const toast = useToast();
 
     const isCompact = !isMobile && screenSize === "md";
+    const isDeviceSpecific = !!settingsDeviceKey;
 
-    // Check for device-specific settings on load
+    // Ensure the settings are reloaded when the device key changes
     useEffect(() => {
         if (deviceKey) {
-            const hasSpecificSettings = hasDeviceSettings(deviceKey);
-            setIsDeviceSpecific(hasSpecificSettings);
-        } else {
-            setIsDeviceSpecific(false);
+            changeDevice(deviceKey);
         }
-    }, [deviceKey, hasDeviceSettings, setIsDeviceSpecific]);
+    }, [changeDevice, deviceKey]);
 
     // Find the closest matching time range option to the current prune threshold
     const selectedTimeRangeIndex = useMemo(() => {
@@ -785,20 +783,19 @@ export default function StatusPanel({
     const handleSettingsScopeToggle = () => {
         if (!deviceKey) return;
 
-        const newIsDeviceSpecific = !isDeviceSpecific;
+        if (isDeviceSpecific) {
+            setSettingsDeviceKey(null);
 
-        setIsDeviceSpecific(newIsDeviceSpecific, deviceKey);
-        setIsDeviceSpecific(newIsDeviceSpecific);
-
-        if (newIsDeviceSpecific) {
-            toast.info(
-                "Device-specific settings enabled",
-                "All settings (map position, auto-center, colors, time range) will now be saved for this device only.",
-            );
-        } else {
             toast.info(
                 "Global settings enabled",
                 "This device will now use global settings for maps, colors and time range.",
+            );
+        } else {
+            setSettingsDeviceKey(deviceKey);
+
+            toast.info(
+                "Device-specific settings enabled",
+                "All settings (map position, auto-center, colors, time range) will now be saved for this device only.",
             );
         }
     };

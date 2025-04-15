@@ -29,18 +29,9 @@ const settingsSchema = z.object({
     version: z.number().default(1),
 });
 
-const deviceSettingsSchema = z.object({
-    autoCenter: z.boolean(),
-    colorMode: colorModeSchema,
-    pruneThreshold: z.number(),
-    mapSettings: mapSettingsSchema,
-    version: z.number().default(1),
-});
-
 export type ColorMode = z.infer<typeof colorModeSchema>;
 export type MapSettings = z.infer<typeof mapSettingsSchema>;
-type Settings = z.infer<typeof settingsSchema>;
-type DeviceSettings = z.infer<typeof deviceSettingsSchema>;
+export type Settings = z.infer<typeof settingsSchema>;
 
 export interface Trip {
     reports: Report[];
@@ -54,8 +45,7 @@ interface FollowState {
     pruneThreshold: number;
     previousPruneThreshold: number;
     mapSettings: MapSettings;
-    isDeviceSpecific: boolean;
-    currentDeviceKey: string | null;
+    settingsDeviceKey: string | null;
 
     setColorMode: (mode: ColorMode) => void;
     setAutoCenter: (autoCenter: boolean) => void;
@@ -65,78 +55,133 @@ interface FollowState {
     setPruneThreshold: (threshold: number) => void;
     shouldRefetch: () => boolean;
     setMapSettings: (settings: Partial<MapSettings>) => void;
-    hasDeviceSettings: (deviceKey: string) => boolean;
-    loadDeviceSettings: (deviceKey: string) => boolean;
-    removeDeviceSettings: (deviceKey: string) => void;
-    saveDeviceSettings: (deviceKey: string) => void;
     resetSettings: (deviceKey?: string | null) => void;
-    setIsDeviceSpecific: (isDeviceSpecific: boolean, deviceKey?: string | null) => void;
-    setCurrentDeviceKey: (deviceKey: string | null) => void;
+    changeDevice: (deviceKey: string) => void;
+    setSettingsDeviceKey: (deviceKey: string | null) => void;
 }
 
 // Default settings
 const DEFAULT_SETTINGS = settingsSchema.parse({});
 
-// Load settings from local storage
-const loadSettings = (): Settings => {
-    try {
-        const savedSettings = localStorage.getItem("follow.settings");
-        if (savedSettings) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            const parsed = JSON.parse(savedSettings);
-            return settingsSchema.parse(parsed);
-        }
-    } catch (e) {
-        console.error("Failed to load or validate settings from local storage:", e);
-    }
-
-    return DEFAULT_SETTINGS;
-};
-
-// Save settings to local storage
-const saveSettings = (settings: Settings) => {
-    try {
-        localStorage.setItem("follow.settings", JSON.stringify(settings));
-    } catch (e) {
-        console.error("Failed to save settings to local storage:", e);
-    }
-};
-
 export const useFollowStore = create<FollowState>((set, get) => {
-    const savedSettings = loadSettings();
+    const loadSettingsFromLocalStorage = (deviceKey: string | null = null): Settings | null => {
+        const key = deviceKey ? `follow.settings.${deviceKey}` : "follow.settings";
+
+        try {
+            const savedSettings = localStorage.getItem(key);
+            if (savedSettings) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                const parsed = JSON.parse(savedSettings);
+                return settingsSchema.parse(parsed);
+            }
+        } catch (e) {
+            if (deviceKey) {
+                console.error(
+                    `Failed to load or validate device settings for device ${deviceKey} from local storage:`,
+                    e,
+                );
+            } else {
+                console.error("Failed to load or validate settings from local storage:", e);
+            }
+        }
+
+        return null;
+    };
+
+    const loadSettings = () => {
+        const { settingsDeviceKey } = get();
+        let settings: Settings | null;
+
+        if (settingsDeviceKey) {
+            const deviceSettings = loadSettingsFromLocalStorage(settingsDeviceKey);
+
+            if (deviceSettings) {
+                settings = deviceSettings;
+            } else {
+                set({ settingsDeviceKey: null });
+            }
+        }
+
+        settings ??= loadSettingsFromLocalStorage() ?? DEFAULT_SETTINGS;
+
+        set({
+            autoCenter: settings.autoCenter,
+            colorMode: settings.colorMode,
+            pruneThreshold: settings.pruneThreshold,
+            previousPruneThreshold: settings.pruneThreshold,
+            mapSettings: settings.mapSettings,
+        });
+    };
+
+    const saveSettings = () => {
+        const { autoCenter, colorMode, pruneThreshold, mapSettings, settingsDeviceKey } = get();
+        const key = settingsDeviceKey ? `follow.settings.${settingsDeviceKey}` : "follow.settings";
+
+        const settings = {
+            autoCenter,
+            colorMode,
+            pruneThreshold,
+            mapSettings,
+            version: 1,
+        };
+
+        try {
+            localStorage.setItem(key, JSON.stringify(settings));
+        } catch (e) {
+            if (settingsDeviceKey) {
+                console.error(`Failed to save device settings for device ${settingsDeviceKey} to local storage:`, e);
+            } else {
+                console.error("Failed to save settings to local storage:", e);
+            }
+        }
+    };
+
+    const changeDevice = (deviceKey: string) => {
+        const { settingsDeviceKey } = get();
+
+        if (settingsDeviceKey === deviceKey) return;
+
+        set({ settingsDeviceKey: deviceKey });
+
+        // Load the settings for the new device key. This will prefer the device-specific settings, falling back to
+        // global settings and then default settings. It will also unset the device key if there are no device-specific
+        // settings available.
+        loadSettings();
+    };
+
+    const initialSettings = loadSettingsFromLocalStorage() ?? DEFAULT_SETTINGS;
 
     return {
-        // Combine defaults with saved settings
-        autoCenter: savedSettings.autoCenter,
-        colorMode: savedSettings.colorMode,
+        autoCenter: initialSettings.autoCenter,
+        colorMode: initialSettings.colorMode,
         lastReport: null,
         trips: [],
-        pruneThreshold: savedSettings.pruneThreshold,
-        previousPruneThreshold: savedSettings.pruneThreshold,
-        mapSettings: savedSettings.mapSettings,
-        isDeviceSpecific: false,
-        currentDeviceKey: null,
+        pruneThreshold: initialSettings.pruneThreshold,
+        previousPruneThreshold: initialSettings.pruneThreshold,
+        mapSettings: initialSettings.mapSettings,
+        settingsDeviceKey: null,
 
-        setCurrentDeviceKey: (deviceKey) => {
-            set({ currentDeviceKey: deviceKey });
+        changeDevice,
 
-            if (deviceKey) {
-                const isDeviceSpecific = get().hasDeviceSettings(deviceKey);
-                set({ isDeviceSpecific });
-            } else {
-                set({ isDeviceSpecific: false });
-            }
-        },
+        setSettingsDeviceKey: (deviceKey: string | null) => {
+            const { settingsDeviceKey } = get();
 
-        setIsDeviceSpecific: (isDeviceSpecific, deviceKey = null) => {
-            set({ isDeviceSpecific });
+            // If the device key is the same as the current one, do nothing.
+            if (settingsDeviceKey === deviceKey) return;
 
-            if (isDeviceSpecific && deviceKey) {
-                get().saveDeviceSettings(deviceKey);
-            } else if (deviceKey) {
-                get().removeDeviceSettings(deviceKey);
+            // If the device key is being cleared, we want to remove the device-specific settings from local storage,
+            // and reset the settings to global settings.
+            if (settingsDeviceKey && !deviceKey) {
+                try {
+                    localStorage.removeItem(`follow.settings.${settingsDeviceKey}`);
+                } catch (e) {
+                    console.error(
+                        `Failed to remove device settings for device ${settingsDeviceKey} from local storage:`,
+                        e,
+                    );
+                }
 
-                const globalSettings = loadSettings();
+                const globalSettings = loadSettingsFromLocalStorage() ?? DEFAULT_SETTINGS;
                 set({
                     autoCenter: globalSettings.autoCenter,
                     colorMode: globalSettings.colorMode,
@@ -144,155 +189,47 @@ export const useFollowStore = create<FollowState>((set, get) => {
                     mapSettings: globalSettings.mapSettings,
                 });
             }
+
+            // If the device key is being set, we want to save the current settings with the new key.
+            if (!settingsDeviceKey && deviceKey) {
+                set({ settingsDeviceKey: deviceKey });
+                saveSettings();
+            }
+
+            // If the device key is being changed, just reuse the changeDevice logic. This will potentially end up
+            // using global settings, but I'm not sure changing the device key and enforcing device-specific settings
+            // in one step makes sense.
+            if (settingsDeviceKey && deviceKey) {
+                changeDevice(deviceKey);
+            }
+
+            set({ settingsDeviceKey: deviceKey });
         },
 
         setColorMode: (mode) => {
             set({ colorMode: mode });
-
-            const { isDeviceSpecific, currentDeviceKey } = get();
-
-            if (isDeviceSpecific && currentDeviceKey) {
-                get().saveDeviceSettings(currentDeviceKey);
-            } else {
-                const settings = get();
-                saveSettings({
-                    autoCenter: settings.autoCenter,
-                    colorMode: mode,
-                    pruneThreshold: settings.pruneThreshold,
-                    mapSettings: settings.mapSettings,
-                    version: 1,
-                });
-            }
+            saveSettings();
         },
 
         setAutoCenter: (autoCenter) => {
             set({ autoCenter });
-
-            const { isDeviceSpecific, currentDeviceKey } = get();
-
-            if (isDeviceSpecific && currentDeviceKey) {
-                get().saveDeviceSettings(currentDeviceKey);
-            } else {
-                const settings = get();
-                saveSettings({
-                    autoCenter,
-                    colorMode: settings.colorMode,
-                    pruneThreshold: settings.pruneThreshold,
-                    mapSettings: settings.mapSettings,
-                    version: 1,
-                });
-            }
+            saveSettings();
         },
 
         setPruneThreshold: (threshold) => {
             const currentThreshold = get().pruneThreshold;
             set({ pruneThreshold: threshold, previousPruneThreshold: currentThreshold });
-
-            const { isDeviceSpecific, currentDeviceKey } = get();
-
-            if (isDeviceSpecific && currentDeviceKey) {
-                get().saveDeviceSettings(currentDeviceKey);
-            } else {
-                const settings = get();
-                saveSettings({
-                    autoCenter: settings.autoCenter,
-                    colorMode: settings.colorMode,
-                    pruneThreshold: threshold,
-                    mapSettings: settings.mapSettings,
-                    version: 1,
-                });
-            }
+            saveSettings();
         },
 
         setMapSettings: (newSettings) => {
             const currentSettings = get().mapSettings;
             const updatedSettings = { ...currentSettings, ...newSettings };
             set({ mapSettings: updatedSettings });
-
-            const { isDeviceSpecific, currentDeviceKey } = get();
-
-            if (isDeviceSpecific && currentDeviceKey) {
-                get().saveDeviceSettings(currentDeviceKey);
-            } else {
-                const settings = get();
-                saveSettings({
-                    autoCenter: settings.autoCenter,
-                    colorMode: settings.colorMode,
-                    pruneThreshold: settings.pruneThreshold,
-                    mapSettings: updatedSettings,
-                    version: 1,
-                });
-            }
+            saveSettings();
         },
 
-        hasDeviceSettings: (deviceKey: string) => {
-            try {
-                const savedSettings = localStorage.getItem(`follow.settings.${deviceKey}`);
-                return savedSettings !== null;
-            } catch (e) {
-                console.error(`Failed to check device settings for device ${deviceKey} in local storage:`, e);
-                return false;
-            }
-        },
-
-        removeDeviceSettings: (deviceKey: string) => {
-            try {
-                localStorage.removeItem(`follow.settings.${deviceKey}`);
-            } catch (e) {
-                console.error(`Failed to remove device settings for device ${deviceKey} from local storage:`, e);
-            }
-        },
-
-        loadDeviceSettings: (deviceKey: string) => {
-            try {
-                const savedSettings = localStorage.getItem(`follow.settings.${deviceKey}`);
-
-                if (savedSettings) {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                    const parsed = JSON.parse(savedSettings);
-                    const validatedSettings = deviceSettingsSchema.parse(parsed);
-
-                    set({
-                        autoCenter: validatedSettings.autoCenter,
-                        colorMode: validatedSettings.colorMode,
-                        pruneThreshold: validatedSettings.pruneThreshold,
-                        previousPruneThreshold: validatedSettings.pruneThreshold,
-                        mapSettings: validatedSettings.mapSettings,
-                        isDeviceSpecific: true,
-                        currentDeviceKey: deviceKey,
-                    });
-
-                    return true;
-                }
-            } catch (e) {
-                console.error(
-                    `Failed to load or validate device settings for device ${deviceKey} from local storage:`,
-                    e,
-                );
-            }
-
-            return false;
-        },
-
-        saveDeviceSettings: (deviceKey) => {
-            try {
-                const { autoCenter, colorMode, pruneThreshold, mapSettings } = get();
-                const deviceSettings: DeviceSettings = {
-                    autoCenter,
-                    colorMode,
-                    pruneThreshold,
-                    mapSettings,
-                    version: 1,
-                };
-                localStorage.setItem(`follow.settings.${deviceKey}`, JSON.stringify(deviceSettings));
-            } catch (e) {
-                console.error(`Failed to save device settings for device ${deviceKey} to local storage:`, e);
-            }
-        },
-
-        resetSettings: (deviceKey = null) => {
-            const { isDeviceSpecific } = get();
-
+        resetSettings: () => {
             set({
                 autoCenter: DEFAULT_SETTINGS.autoCenter,
                 colorMode: DEFAULT_SETTINGS.colorMode,
@@ -300,15 +237,7 @@ export const useFollowStore = create<FollowState>((set, get) => {
                 mapSettings: DEFAULT_SETTINGS.mapSettings,
             });
 
-            if (deviceKey) {
-                if (isDeviceSpecific) {
-                    get().saveDeviceSettings(deviceKey);
-                } else {
-                    saveSettings(DEFAULT_SETTINGS);
-                }
-            } else {
-                saveSettings(DEFAULT_SETTINGS);
-            }
+            saveSettings();
         },
 
         shouldRefetch: () => {

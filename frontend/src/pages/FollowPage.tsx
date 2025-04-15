@@ -34,8 +34,7 @@ export default function FollowPage() {
         pruneThreshold,
         setPruneThreshold,
         shouldRefetch,
-        loadDeviceSettings,
-        setCurrentDeviceKey,
+        settingsDeviceKey,
         trips,
     } = useFollowStore();
     const toast = useToast();
@@ -57,11 +56,7 @@ export default function FollowPage() {
             setInitialLoadComplete(false);
             setHasAnyData(false);
 
-            setCurrentDeviceKey(deviceKey);
-
-            const deviceHasCustomSettings = loadDeviceSettings(deviceKey);
-
-            if (deviceHasCustomSettings) {
+            if (settingsDeviceKey) {
                 toast.info(
                     "Device-specific settings loading",
                     "Custom map position, colors and time ranges for this device have been loaded.",
@@ -73,7 +68,7 @@ export default function FollowPage() {
             firstRenderRef.current = false;
             prevDeviceKeyRef.current = deviceKey;
         }
-    }, [clearReports, deviceKey, calculateHistoricalSince, loadDeviceSettings, setCurrentDeviceKey, toast]);
+    }, [clearReports, deviceKey, calculateHistoricalSince, toast, settingsDeviceKey]);
 
     // Set up automatic pruning on an interval
     useEffect(() => {
