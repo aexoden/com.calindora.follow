@@ -23,12 +23,12 @@ import ColorLegend from "./ColorLegend";
 
 // Constants
 const TIME_RANGE_OPTIONS = [
-    { label: "2 hours", value: 2 * 60 * 60 * 1000 },
     { label: "6 hours", value: 6 * 60 * 60 * 1000 },
-    { label: "12 hours", value: 12 * 60 * 60 * 1000 },
     { label: "1 day", value: 24 * 60 * 60 * 1000 },
     { label: "2 days", value: 2 * 24 * 60 * 60 * 1000 },
-    { label: "1 week", value: 7 * 24 * 60 * 60 * 1000 },
+    { label: "7 days", value: 7 * 24 * 60 * 60 * 1000 },
+    { label: "14 days", value: 14 * 24 * 60 * 60 * 1000 },
+    { label: "30 days", value: 30 * 24 * 60 * 60 * 1000 },
 ];
 
 // Types
