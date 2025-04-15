@@ -8,6 +8,7 @@ import {
 } from "@react-google-maps/api";
 import { useFollowStore } from "../store/followStore";
 import { Report } from "../services/api";
+import { useToast } from "../hooks/useToast";
 
 const containerStyle = {
     height: "100%",
@@ -50,8 +51,10 @@ function FollowMap({ className = "" }: FollowMapProps) {
 
     const [map, setMap] = useState<google.maps.Map | null>(null);
     const [initialLoadDone, setInitialLoadDone] = useState(false);
+    const toast = useToast();
 
-    const { trips, lastReport, autoCenter, colorMode, pruneThreshold, mapSettings, setMapSettings } = useFollowStore();
+    const { trips, lastReport, autoCenter, colorMode, pruneThreshold, mapSettings, setMapSettings, setAutoCenter } =
+        useFollowStore();
 
     const saveMapState = useCallback(() => {
         if (!map || !initialLoadDone) return;
@@ -93,6 +96,33 @@ function FollowMap({ className = "" }: FollowMapProps) {
             google.maps.event.removeListener(centerListener);
         };
     }, [map, initialLoadDone, saveMapState]);
+
+    useEffect(() => {
+        if (!map || !initialLoadDone || !autoCenter) return;
+
+        let isDragging = false;
+
+        const handleDragStart = () => {
+            isDragging = true;
+        };
+
+        const handleDragEnd = () => {
+            if (isDragging) {
+                setAutoCenter(false);
+                isDragging = false;
+
+                toast.info("Auto-center disabled", "Auto-center has been turned off because you moved the map");
+            }
+        };
+
+        const dragStartListener = map.addListener("dragstart", handleDragStart);
+        const dragEndListener = map.addListener("dragend", handleDragEnd);
+
+        return () => {
+            google.maps.event.removeListener(dragStartListener);
+            google.maps.event.removeListener(dragEndListener);
+        };
+    }, [map, initialLoadDone, autoCenter, setAutoCenter, toast]);
 
     const onLoad = useCallback(
         (map: google.maps.Map) => {
