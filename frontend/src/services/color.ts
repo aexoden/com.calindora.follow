@@ -15,6 +15,7 @@ export interface GradientConfig {
         value: number;
         label: string;
     };
+    threshold: number;
 }
 
 export const GRADIENTS: Record<ColorMode, GradientConfig> = {
@@ -30,6 +31,7 @@ export const GRADIENTS: Record<ColorMode, GradientConfig> = {
             value: 1,
             label: "Newer",
         },
+        threshold: 2.0,
     },
     speed: {
         colorSpace: "oklch",
@@ -43,6 +45,7 @@ export const GRADIENTS: Record<ColorMode, GradientConfig> = {
             value: 44.704, // 100 MPH in m/s
             label: "100+ MPH",
         },
+        threshold: 10.0,
     },
     elevation: {
         colorSpace: "oklch",
@@ -62,6 +65,7 @@ export const GRADIENTS: Record<ColorMode, GradientConfig> = {
             value: 3048, // 10000 ft in meters
             label: "10000+ ft",
         },
+        threshold: 2.0,
     },
 };
 
@@ -80,6 +84,10 @@ export function getGradientString(mode: ColorMode): string {
     }
 
     return `linear-gradient(to right, ${stops.join(", ")})`;
+}
+
+export function getGradientThreshold(mode: ColorMode): number {
+    return GRADIENTS[mode].threshold;
 }
 
 export function getColorForValue(mode: ColorMode, value: number): chroma.Color {
