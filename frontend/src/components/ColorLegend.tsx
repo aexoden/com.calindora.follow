@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { ColorMode } from "../store/followStore";
+import { GRADIENTS, getGradientString } from "../services/color";
 
 interface ColorLegendProps {
     mode: ColorMode;
@@ -8,25 +9,8 @@ interface ColorLegendProps {
 }
 
 function ColorLegend({ mode, className = "", isCompact = false }: ColorLegendProps) {
-    const config = {
-        elevation: {
-            description: "Track colored by elevation",
-            gradient: "linear-gradient(to right, #0F5E9C, #0B7039, #925E1C)",
-            labels: ["0 ft", "10000+ ft"],
-        },
-        speed: {
-            description: "Track colored by speed",
-            gradient: "linear-gradient(to right, #0066CC, #32AF42, #FFCC33)",
-            labels: ["0 MPH", "100+ MPH"],
-        },
-        time: {
-            description: "Track colored by time",
-            gradient: "linear-gradient(to right, #0066CC, #996699, #FF6666)",
-            labels: ["Older", "Newer"],
-        },
-    };
-
-    const { gradient, labels, description } = config[mode];
+    const { description, min, max } = GRADIENTS[mode];
+    const gradient = getGradientString(mode);
 
     if (isCompact) {
         return (
@@ -36,8 +20,8 @@ function ColorLegend({ mode, className = "", isCompact = false }: ColorLegendPro
                     style={{ background: gradient }}
                 />
                 <div className="flex justify-between text-gray-500">
-                    <span>{labels[0]}</span>
-                    <span>{labels[1]}</span>
+                    <span>{min.label}</span>
+                    <span>{max.label}</span>
                 </div>
             </div>
         );
@@ -51,8 +35,8 @@ function ColorLegend({ mode, className = "", isCompact = false }: ColorLegendPro
                 style={{ background: gradient }}
             />
             <div className="flex justify-between text-xs text-gray-500">
-                <span>{labels[0]}</span>
-                <span>{labels[1]}</span>
+                <span>{min.label}</span>
+                <span>{max.label}</span>
             </div>
         </div>
     );
