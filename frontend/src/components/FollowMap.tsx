@@ -1,11 +1,5 @@
 import { memo, useEffect, useMemo, useState, useCallback } from "react";
-import {
-    GoogleMap,
-    useJsApiLoader,
-    MarkerF as Marker,
-    CircleF as Circle,
-    PolylineF as Polyline,
-} from "@react-google-maps/api";
+import { GoogleMap, MarkerF as Marker, CircleF as Circle, PolylineF as Polyline } from "@react-google-maps/api";
 import { useFollowStore } from "../store/followStore";
 import { Report } from "../services/api";
 import { useToast } from "../hooks/useToast";
@@ -19,14 +13,10 @@ const containerStyle = {
 
 interface FollowMapProps {
     className?: string;
+    isLoaded?: boolean;
 }
 
-function FollowMap({ className = "" }: FollowMapProps) {
-    const { isLoaded } = useJsApiLoader({
-        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
-        id: "google-map-script",
-    });
-
+function FollowMap({ className = "", isLoaded = false }: FollowMapProps) {
     const [map, setMap] = useState<google.maps.Map | null>(null);
     const [initialLoadDone, setInitialLoadDone] = useState(false);
     const [showDebugInfo, setShowDebugInfo] = useState(false);
@@ -232,72 +222,74 @@ function FollowMap({ className = "" }: FollowMapProps) {
         };
     }, [showDebugInfo, trips, allPathStyles]);
 
-    if (!isLoaded) return <div className="flex h-full items-center justify-center">Loading Maps...</div>;
-
     return (
         <div className={`h-full ${className} relative`}>
-            <GoogleMap
-                mapContainerStyle={containerStyle}
-                zoom={mapSettings.zoom}
-                onLoad={onLoad}
-                onUnmount={onUnmount}
-                options={{ fullscreenControl: false, mapTypeControl: true, streetViewControl: false }}
-            >
-                {lastReport && (
-                    <>
-                        <Marker position={{ lat: lastReport.latitude, lng: lastReport.longitude }} />
-                        <Circle
-                            center={{ lat: lastReport.latitude, lng: lastReport.longitude }}
-                            options={{
-                                fillColor: "#0066CC",
-                                fillOpacity: 0.3,
-                                radius: lastReport.accuracy,
-                                strokeColor: "#0066CC",
-                                strokeOpacity: 0.9,
-                                strokeWeight: 2,
-                            }}
-                        />
-                    </>
-                )}
+            {isLoaded ? (
+                <GoogleMap
+                    mapContainerStyle={containerStyle}
+                    zoom={mapSettings.zoom}
+                    onLoad={onLoad}
+                    onUnmount={onUnmount}
+                    options={{ fullscreenControl: false, mapTypeControl: true, streetViewControl: false }}
+                >
+                    {lastReport && (
+                        <>
+                            <Marker position={{ lat: lastReport.latitude, lng: lastReport.longitude }} />
+                            <Circle
+                                center={{ lat: lastReport.latitude, lng: lastReport.longitude }}
+                                options={{
+                                    fillColor: "#0066CC",
+                                    fillOpacity: 0.3,
+                                    radius: lastReport.accuracy,
+                                    strokeColor: "#0066CC",
+                                    strokeOpacity: 0.9,
+                                    strokeWeight: 2,
+                                }}
+                            />
+                        </>
+                    )}
 
-                {trips.map((trip, tripIndex) => {
-                    if (trip.reports.length === 0) return null;
+                    {trips.map((trip, tripIndex) => {
+                        if (trip.reports.length === 0) return null;
 
-                    const pathStyles = allPathStyles[tripIndex];
+                        const pathStyles = allPathStyles[tripIndex];
 
-                    return pathStyles.map((path) => (
-                        <Polyline
-                            key={`${path.pathStart}-${path.pathEnd}`}
-                            path={path.points}
-                            options={{
-                                strokeColor: path.color,
-                                strokeOpacity: 1.0,
-                                strokeWeight: 4,
-                            }}
-                        />
-                    ));
-                })}
+                        return pathStyles.map((path) => (
+                            <Polyline
+                                key={`${path.pathStart}-${path.pathEnd}`}
+                                path={path.points}
+                                options={{
+                                    strokeColor: path.color,
+                                    strokeOpacity: 1.0,
+                                    strokeWeight: 4,
+                                }}
+                            />
+                        ));
+                    })}
 
-                {showDebugInfo && (
-                    <div className="absolute right-2 bottom-2 max-h-64 max-w-xs overflow-auto rounded bg-black/80 p-3 text-xs text-white">
-                        <h3 className="mb-1 text-sm font-bold">Polyline Debug Info</h3>
-                        <div className="grid grid-cols-2 gap-x-2 gap-y-1">
-                            <div className="text-gray-300">Total Trips:</div>
-                            <div>{debugStats?.totalTrips}</div>
-                            <div className="text-gray-300">Total Reports:</div>
-                            <div>{debugStats?.totalReports}</div>
-                            <div className="text-gray-300">Total Polylines:</div>
-                            <div>{debugStats?.totalSegments}</div>
-                            <div className="text-gray-300">Total Points:</div>
-                            <div>{debugStats?.totalPoints}</div>
-                            <div className="text-gray-300">Average Points/Polyline:</div>
-                            <div>{debugStats?.averagePointsPerSegment}</div>
+                    {showDebugInfo && (
+                        <div className="absolute right-2 bottom-2 max-h-64 max-w-xs overflow-auto rounded bg-black/80 p-3 text-xs text-white">
+                            <h3 className="mb-1 text-sm font-bold">Polyline Debug Info</h3>
+                            <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                                <div className="text-gray-300">Total Trips:</div>
+                                <div>{debugStats?.totalTrips}</div>
+                                <div className="text-gray-300">Total Reports:</div>
+                                <div>{debugStats?.totalReports}</div>
+                                <div className="text-gray-300">Total Polylines:</div>
+                                <div>{debugStats?.totalSegments}</div>
+                                <div className="text-gray-300">Total Points:</div>
+                                <div>{debugStats?.totalPoints}</div>
+                                <div className="text-gray-300">Average Points/Polyline:</div>
+                                <div>{debugStats?.averagePointsPerSegment}</div>
+                            </div>
+
+                            <div className="text-2xs mt-2 text-gray-400">Press Alt+Ctrl+D to hide</div>
                         </div>
-
-                        <div className="text-2xs mt-2 text-gray-400">Press Alt+Ctrl+D to hide</div>
-                    </div>
-                )}
-            </GoogleMap>
+                    )}
+                </GoogleMap>
+            ) : (
+                <div className="flex h-full items-center justify-center">{/* Empty div to hold space */}</div>
+            )}
         </div>
     );
 }
