@@ -2,6 +2,7 @@
 pub struct Settings {
     pub application: ApplicationSettings,
     pub database: DatabaseSettings,
+    pub frontend: FrontendSettings,
 }
 
 #[derive(serde::Deserialize, Clone)]
@@ -13,6 +14,11 @@ pub struct ApplicationSettings {
 #[derive(serde::Deserialize, Clone)]
 pub struct DatabaseSettings {
     pub url: String,
+}
+
+#[derive(serde::Deserialize, Clone)]
+pub struct FrontendSettings {
+    pub maps_api_key: String,
 }
 
 #[derive(PartialEq)]

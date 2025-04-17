@@ -19,7 +19,11 @@ const POLLING_INTERVAL = 5000; // 5 seconds
 const REPORT_LIMIT = 1000;
 const PRUNE_INTERVAL = 60000; // 1 minute
 
-export default function FollowPage() {
+interface FollowPageProps {
+    googleMapsApiKey: string;
+}
+
+export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
     const { deviceKey } = useParams<{ deviceKey: string }>();
 
     const [currentSince, setCurrentSince] = useState(
@@ -47,7 +51,7 @@ export default function FollowPage() {
 
     // Load Google Maps API
     const { isLoaded: isMapsLoaded } = useJsApiLoader({
-        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
+        googleMapsApiKey,
         id: "google-map-script",
     });
 

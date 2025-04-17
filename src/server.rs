@@ -126,6 +126,7 @@ fn run(listener: TcpListener, db_pool: PgPool, settings: Settings) -> std::io::R
             .app_data(db_pool.clone())
             .app_data(settings.clone())
             .service(crate::routes::health_check::health_check)
+            .service(crate::routes::frontend_config::get_frontend_config)
             .service(crate::routes::api::get_report_count)
             .service(crate::routes::api::get_report_by_id)
             .service(crate::routes::api::get_reports)

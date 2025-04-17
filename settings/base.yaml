@@ -3,3 +3,5 @@ application:
   port: 5000
 database:
   url: "postgres://com_calindora_follow:password@localhost/com_calindora_follow"
+frontend:
+  maps_api_key: ""

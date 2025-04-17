@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router";
 import { SWRConfig } from "swr";
 import { Toaster } from "react-hot-toast";
@@ -6,8 +7,30 @@ import FollowPage from "./pages/FollowPage";
 import HomePage from "./pages/HomePage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { configService } from "./services/config";
+import { useToast } from "./hooks/useToast";
 
 export default function App() {
+    const [googleMapsApiKey, setGoogleMapsApiKey] = useState<string>("");
+    const [configLoaded, setConfigLoaded] = useState<boolean>(false);
+
+    const toast = useToast();
+
+    useEffect(() => {
+        const loadConfig = async () => {
+            try {
+                const config = await configService.getConfig();
+                setGoogleMapsApiKey(config.maps_api_key);
+                setConfigLoaded(true);
+            } catch (_error: unknown) {
+                toast.error("Failed to load configuration", "Some features may not work correctly");
+                setConfigLoaded(true);
+            }
+        };
+
+        void loadConfig();
+    }, [toast]);
+
     return (
         <ErrorBoundary>
             <SWRConfig
@@ -31,7 +54,13 @@ export default function App() {
                             />
                             <Route
                                 path="follow/:deviceKey"
-                                element={<FollowPage />}
+                                element={
+                                    configLoaded ? (
+                                        <FollowPage googleMapsApiKey={googleMapsApiKey} />
+                                    ) : (
+                                        <div>Loading...</div>
+                                    )
+                                }
                             />
                             <Route
                                 path="*"
