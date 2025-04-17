@@ -26,6 +26,7 @@ const settingsSchema = z.object({
     colorMode: colorModeSchema.default("time"),
     pruneThreshold: z.number().default(DEFAULT_PRUNE_THRESHOLD),
     mapSettings: mapSettingsSchema.default({}),
+    mobilePanelExpanded: z.boolean().default(false),
     version: z.number().default(1),
 });
 
@@ -46,6 +47,7 @@ interface FollowState {
     previousPruneThreshold: number;
     mapSettings: MapSettings;
     settingsDeviceKey: string | null;
+    mobilePanelExpanded: boolean;
 
     setColorMode: (mode: ColorMode) => void;
     setAutoCenter: (autoCenter: boolean) => void;
@@ -58,6 +60,7 @@ interface FollowState {
     resetSettings: (deviceKey?: string | null) => void;
     changeDevice: (deviceKey: string) => void;
     setSettingsDeviceKey: (deviceKey: string | null) => void;
+    setMobilePanelExpanded: (expanded: boolean) => void;
 }
 
 // Default settings
@@ -110,11 +113,12 @@ export const useFollowStore = create<FollowState>((set, get) => {
             pruneThreshold: settings.pruneThreshold,
             previousPruneThreshold: settings.pruneThreshold,
             mapSettings: settings.mapSettings,
+            mobilePanelExpanded: settings.mobilePanelExpanded,
         });
     };
 
     const saveSettings = () => {
-        const { autoCenter, colorMode, pruneThreshold, mapSettings, settingsDeviceKey } = get();
+        const { autoCenter, colorMode, pruneThreshold, mapSettings, settingsDeviceKey, mobilePanelExpanded } = get();
         const key = settingsDeviceKey ? `follow.settings.${settingsDeviceKey}` : "follow.settings";
 
         const settings = {
@@ -122,6 +126,7 @@ export const useFollowStore = create<FollowState>((set, get) => {
             colorMode,
             pruneThreshold,
             mapSettings,
+            mobilePanelExpanded,
             version: 1,
         };
 
@@ -160,6 +165,7 @@ export const useFollowStore = create<FollowState>((set, get) => {
         previousPruneThreshold: initialSettings.pruneThreshold,
         mapSettings: initialSettings.mapSettings,
         settingsDeviceKey: null,
+        mobilePanelExpanded: initialSettings.mobilePanelExpanded,
 
         changeDevice,
 
@@ -187,6 +193,7 @@ export const useFollowStore = create<FollowState>((set, get) => {
                     colorMode: globalSettings.colorMode,
                     pruneThreshold: globalSettings.pruneThreshold,
                     mapSettings: globalSettings.mapSettings,
+                    mobilePanelExpanded: globalSettings.mobilePanelExpanded,
                 });
             }
 
@@ -204,6 +211,11 @@ export const useFollowStore = create<FollowState>((set, get) => {
             }
 
             set({ settingsDeviceKey: deviceKey });
+        },
+
+        setMobilePanelExpanded: (expanded) => {
+            set({ mobilePanelExpanded: expanded });
+            saveSettings();
         },
 
         setColorMode: (mode) => {
@@ -235,6 +247,7 @@ export const useFollowStore = create<FollowState>((set, get) => {
                 colorMode: DEFAULT_SETTINGS.colorMode,
                 pruneThreshold: DEFAULT_SETTINGS.pruneThreshold,
                 mapSettings: DEFAULT_SETTINGS.mapSettings,
+                mobilePanelExpanded: DEFAULT_SETTINGS.mobilePanelExpanded,
             });
 
             saveSettings();

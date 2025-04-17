@@ -655,9 +655,10 @@ export default function StatusPanel({
         settingsDeviceKey,
         changeDevice,
         setSettingsDeviceKey,
+        mobilePanelExpanded,
+        setMobilePanelExpanded,
     } = useFollowStore();
 
-    const [expandedOnMobile, setExpandedOnMobile] = useState(false);
     const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
 
     const toast = useToast();
@@ -689,7 +690,7 @@ export default function StatusPanel({
     });
 
     useEffect(() => {
-        if (isMobile && expandedOnMobile && !hasSeenMobileHint) {
+        if (isMobile && mobilePanelExpanded && !hasSeenMobileHint) {
             try {
                 localStorage.setItem("follow.mobileHint", "true");
                 setHasSeenMobileHint(true);
@@ -697,7 +698,7 @@ export default function StatusPanel({
                 // Ignore storage errors
             }
         }
-    }, [isMobile, expandedOnMobile, hasSeenMobileHint]);
+    }, [isMobile, mobilePanelExpanded, hasSeenMobileHint]);
 
     // Format values for display
     const formattedValues = useMemo(() => {
@@ -888,11 +889,11 @@ export default function StatusPanel({
             <div className={`rounded-lg bg-white shadow-md transition-all ${className}`}>
                 <MobileHeader
                     formattedValues={formattedValues}
-                    expanded={expandedOnMobile}
-                    setExpanded={setExpandedOnMobile}
+                    expanded={mobilePanelExpanded}
+                    setExpanded={setMobilePanelExpanded}
                 />
 
-                {!expandedOnMobile && !hasSeenMobileHint && (
+                {!mobilePanelExpanded && !hasSeenMobileHint && (
                     <div className="animate-bounce bg-slate-50 p-2 text-center text-xs text-slate-600">
                         <div className="flex items-center justify-center">
                             <span>Tap More button to see settings</span>
@@ -903,7 +904,7 @@ export default function StatusPanel({
 
                 <div
                     className={`overflow-hidden transition-all duration-300 ${
-                        expandedOnMobile ? "max-h-screen" : "max-h-0"
+                        mobilePanelExpanded ? "max-h-screen" : "max-h-0"
                     }`}
                 >
                     <div className="border-t border-gray-100 p-2">
