@@ -21,15 +21,14 @@ const PRUNE_INTERVAL = 60000; // 1 minute
 
 export default function FollowPage() {
     const { deviceKey } = useParams<{ deviceKey: string }>();
+
     const [currentSince, setCurrentSince] = useState(
         new Date(new Date().getTime() - INITIAL_DATA_DURATION).toISOString(),
     );
 
     const [allHistoricalDataLoaded, setAllHistoricalDataLoaded] = useState(false);
-
     const [isRefetching, setIsRefetching] = useState(false);
-    const [hasAnyData, setHasAnyData] = useState(false);
-    const navigate = useNavigate();
+
     const {
         addReports,
         clearReports,
@@ -40,8 +39,9 @@ export default function FollowPage() {
         settingsDeviceKey,
         trips,
     } = useFollowStore();
-    const toast = useToast();
 
+    const toast = useToast();
+    const navigate = useNavigate();
     const { screenSize } = useWindowSize();
 
     // Load Google Maps API
@@ -62,6 +62,8 @@ export default function FollowPage() {
         }
     }, [deviceKey]);
 
+    const hasAnyData = trips.some((trip) => trip.reports.length > 0);
+
     const calculateHistoricalSince = useCallback(() => {
         return new Date(new Date().getTime() - pruneThreshold).toISOString();
     }, [pruneThreshold]);
@@ -74,7 +76,6 @@ export default function FollowPage() {
         if (deviceKey && (firstRenderRef.current || prevDeviceKeyRef.current !== deviceKey)) {
             clearReports();
             setAllHistoricalDataLoaded(false);
-            setHasAnyData(false);
 
             if (settingsDeviceKey) {
                 toast.info(
@@ -100,8 +101,6 @@ export default function FollowPage() {
             const newHasData = trips.some((trip) => trip.reports.length > 0);
 
             if (oldHasData && !newHasData) {
-                setHasAnyData(false);
-
                 toast.info(
                     "All location data has been pruned",
                     "No location data falls within the selected time range. Try increasing the time range.",
@@ -190,7 +189,6 @@ export default function FollowPage() {
         if (initialReports !== undefined) {
             if (initialReports.length > 0) {
                 addReports(initialReports);
-                setHasAnyData(true);
 
                 // Only mark as complete if we got fewer reports than the limit.
                 if (initialReports.length < REPORT_LIMIT) {
@@ -213,12 +211,6 @@ export default function FollowPage() {
             }
         }
     }, [addReports, initialReports, isRefetching, pruneThreshold, setPruneThreshold]);
-
-    // Update hasAnyData when trips change
-    useEffect(() => {
-        const hasReports = trips.some((trip) => trip.reports.length > 0);
-        setHasAnyData(hasReports);
-    }, [trips]);
 
     // Real-time polling for new data
     const { data: polledReports } = useSWR<Report[], Error>(
@@ -252,7 +244,6 @@ export default function FollowPage() {
     useEffect(() => {
         if (polledReports && polledReports.length > 0) {
             addReports(polledReports);
-            setHasAnyData(true);
             setCurrentSince(polledReports[polledReports.length - 1].timestamp);
         }
     }, [addReports, polledReports]);
