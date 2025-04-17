@@ -7,6 +7,7 @@ export interface PointWithColor {
     };
     color: string;
     id: string;
+    timestamp: number;
 }
 
 export interface Segment {
@@ -14,12 +15,21 @@ export interface Segment {
     pathEnd: string;
     pathStart: string;
     points: { lat: number; lng: number }[];
+    zIndex: number;
 }
 
 export function consolidateSegments(points: PointWithColor[], deltaEThreshold: number): Segment[] {
     if (points.length < 2) {
         return points.length === 1
-            ? [{ color: points[0].color, pathEnd: points[0].id, pathStart: points[0].id, points: [points[0].point] }]
+            ? [
+                  {
+                      color: points[0].color,
+                      pathEnd: points[0].id,
+                      pathStart: points[0].id,
+                      points: [points[0].point],
+                      zIndex: points[0].timestamp,
+                  },
+              ]
             : [];
     }
 
@@ -51,6 +61,7 @@ export function consolidateSegments(points: PointWithColor[], deltaEThreshold: n
                 pathEnd: currentSegment[currentSegment.length - 1].id,
                 pathStart: currentSegment[0].id,
                 points: currentSegment.map((p) => p.point),
+                zIndex: currentSegment[currentSegment.length - 1].timestamp,
             });
 
             currentSegment = [point];
@@ -67,6 +78,7 @@ export function consolidateSegments(points: PointWithColor[], deltaEThreshold: n
             pathEnd: currentSegment[currentSegment.length - 1].id,
             pathStart: currentSegment[0].id,
             points: currentSegment.map((p) => p.point),
+            zIndex: currentSegment[currentSegment.length - 1].timestamp,
         });
     }
 

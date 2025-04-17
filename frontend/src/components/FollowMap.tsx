@@ -185,6 +185,7 @@ function FollowMap({ className = "", isLoaded = false }: FollowMapProps) {
                         lat: report.latitude,
                         lng: report.longitude,
                     },
+                    timestamp: new Date(report.timestamp).getTime(),
                 };
             });
 
@@ -262,6 +263,7 @@ function FollowMap({ className = "", isLoaded = false }: FollowMapProps) {
                                     strokeColor: path.color,
                                     strokeOpacity: 1.0,
                                     strokeWeight: 4,
+                                    zIndex: path.zIndex,
                                 }}
                             />
                         ));
