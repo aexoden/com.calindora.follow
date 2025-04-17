@@ -13,9 +13,15 @@ interface LoadingIndicatorProps {
     steps: LoadingStep[];
     operationType: "initial" | "refetch";
     className?: string;
+    progress?: number | null;
 }
 
-export default function LoadingIndicator({ steps, operationType, className = "" }: LoadingIndicatorProps) {
+export default function LoadingIndicator({
+    steps,
+    operationType,
+    className = "",
+    progress = null,
+}: LoadingIndicatorProps) {
     // Filter steps to only include those relevant for the current operation type
     const relevantSteps = steps.filter((step) => step.relevantFor.includes(operationType));
 
@@ -75,6 +81,21 @@ export default function LoadingIndicator({ steps, operationType, className = "" 
                         </div>
                     ))}
                 </div>
+
+                {progress !== null && (
+                    <div className="mt-4">
+                        <div className="mb-1 flex justify-between text-xs text-gray-600">
+                            <span>Loading historical data</span>
+                            <span>{progress}%</span>
+                        </div>
+                        <div className="h-2 w-full rounded-full bg-gray-200">
+                            <div
+                                className="h-2 rounded-full bg-blue-500 transition-all duration-300"
+                                style={{ width: `${progress.toString()}%` }}
+                            ></div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

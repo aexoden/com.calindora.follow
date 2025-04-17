@@ -28,6 +28,7 @@ export default function FollowPage() {
 
     const [allHistoricalDataLoaded, setAllHistoricalDataLoaded] = useState(false);
     const [isRefetching, setIsRefetching] = useState(false);
+    const [loadedReports, setLoadedReports] = useState<number>(0);
 
     const {
         addReports,
@@ -76,6 +77,7 @@ export default function FollowPage() {
         if (deviceKey && (firstRenderRef.current || prevDeviceKeyRef.current !== deviceKey)) {
             clearReports();
             setAllHistoricalDataLoaded(false);
+            setLoadedReports(0);
 
             if (settingsDeviceKey) {
                 toast.info(
@@ -145,11 +147,31 @@ export default function FollowPage() {
         }
     }, [deviceExists]);
 
+    // Fetch report count for progress information
+    const { data: totalReports } = useSWR<number, Error>(
+        deviceKey && deviceExists ? ["reportCount", deviceKey, pruneThreshold] : null,
+        async () => {
+            const params: ReportParams = {
+                since: calculateHistoricalSince(),
+            };
+
+            return await apiService.getReportCount(deviceKey ?? "", params);
+        },
+        {
+            revalidateOnFocus: false,
+            revalidateOnReconnect: false,
+            onError: () => {
+                toast.error("Failed to load report count", "Progress information may not be accurate.");
+            },
+        },
+    );
+
     // Listen for prune threshold changes to trigger refetches when increased
     useEffect(() => {
         if (shouldRefetch() && deviceExists && allHistoricalDataLoaded) {
             setIsRefetching(true);
             clearReports();
+            setLoadedReports(0);
             setCurrentSince(calculateHistoricalSince());
             setAllHistoricalDataLoaded(false);
         }
@@ -189,6 +211,7 @@ export default function FollowPage() {
         if (initialReports !== undefined) {
             if (initialReports.length > 0) {
                 addReports(initialReports);
+                setLoadedReports((prev) => prev + initialReports.length);
 
                 // Only mark as complete if we got fewer reports than the limit.
                 if (initialReports.length < REPORT_LIMIT) {
@@ -307,6 +330,12 @@ export default function FollowPage() {
         return isRefetching && !allHistoricalDataLoaded;
     }, [operationType, isRefetching, allHistoricalDataLoaded, loadingSteps]);
 
+    // Calculate loading progress
+    const loadingProgress = useMemo(() => {
+        if (totalReports === undefined || totalReports === 0) return null;
+        return Math.min(100, Math.round((loadedReports / totalReports) * 100));
+    }, [totalReports, loadedReports]);
+
     // If device doesn't exist or there's a device error.
     if (deviceExists === false || deviceError) {
         return (
@@ -393,6 +422,7 @@ export default function FollowPage() {
                         <LoadingIndicator
                             steps={loadingSteps}
                             operationType={operationType}
+                            progress={loadingProgress}
                         />
                     </div>
                 )}

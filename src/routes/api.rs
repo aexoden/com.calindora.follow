@@ -77,6 +77,45 @@ pub struct ReportParameters {
     order: Option<Ordering>,
 }
 
+#[get("/api/v1/devices/{api_key}/reports/count")]
+#[tracing::instrument(name = "Get report count", skip(db, api_key))]
+pub async fn get_report_count(
+    db: Data<PgPool>,
+    api_key: Path<String>,
+    parameters: Query<ReportParameters>,
+) -> Result<impl Responder, ApiError> {
+    let device = Device::find_by_api_key(&db, &api_key)
+        .await
+        .context("Failed to retrieve the device associated with the provided API key")?
+        .ok_or(ApiError::UnknownApiKey)?;
+
+    let since = if let Some(since) = parameters.since {
+        since
+    } else {
+        OffsetDateTime::from_unix_timestamp(0).unwrap()
+    };
+
+    let until = if let Some(until) = parameters.until {
+        until
+    } else {
+        OffsetDateTime::now_utc()
+    };
+
+    let count = sqlx::query_scalar!(
+        r#"SELECT COUNT(*) FROM reports WHERE device_id = $1 AND timestamp > $2 AND timestamp < $3"#,
+        device.id,
+        since,
+        until
+    )
+    .fetch_one(&**db)
+    .await
+    .context("Failed to fetch report count for the device associated with the provided API key")?;
+
+    let count_value = count.unwrap_or(0);
+
+    Ok(HttpResponse::Ok().json(json!({ "count": count_value})))
+}
+
 #[get("/api/v1/devices/{api_key}/reports/{id}")]
 #[tracing::instrument(name = "Get report by ID", skip(db, path))]
 pub async fn get_report_by_id(

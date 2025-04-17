@@ -91,6 +91,11 @@ export const apiService = {
         }
     },
 
+    async getReportCount(deviceKey: string, params: ReportParams = {}): Promise<number> {
+        const response = await api.get<{ count: number }>(`/api/v1/devices/${deviceKey}/reports/count`, { params });
+        return response.data.count;
+    },
+
     async getReport(deviceKey: string, reportId: string): Promise<Report> {
         try {
             const response = await api.get<Report>(`/api/v1/devices/${deviceKey}/reports/${reportId}`);
