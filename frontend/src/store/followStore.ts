@@ -156,6 +156,25 @@ export const useFollowStore = create<FollowState>((set, get) => {
 
     const initialSettings = loadSettingsFromLocalStorage() ?? DEFAULT_SETTINGS;
 
+    const pruneReports = () => {
+        const { trips, pruneThreshold } = get();
+        const now = new Date().getTime();
+        const cutoffTime = now - pruneThreshold;
+
+        const prunedTrips = trips
+            .map((trip) => {
+                const prunedReports = trip.reports.filter((report) => {
+                    const reportTime = new Date(report.timestamp).getTime();
+                    return reportTime >= cutoffTime;
+                });
+
+                return { reports: prunedReports };
+            })
+            .filter((trip) => trip.reports.length > 0);
+
+        set({ trips: prunedTrips });
+    };
+
     return {
         autoCenter: initialSettings.autoCenter,
         colorMode: initialSettings.colorMode,
@@ -242,6 +261,8 @@ export const useFollowStore = create<FollowState>((set, get) => {
         },
 
         resetSettings: () => {
+            const currentPruneThreshold = get().pruneThreshold;
+
             set({
                 autoCenter: DEFAULT_SETTINGS.autoCenter,
                 colorMode: DEFAULT_SETTINGS.colorMode,
@@ -251,6 +272,10 @@ export const useFollowStore = create<FollowState>((set, get) => {
             });
 
             saveSettings();
+
+            if (DEFAULT_SETTINGS.pruneThreshold < currentPruneThreshold) {
+                pruneReports();
+            }
         },
 
         shouldRefetch: () => {
@@ -262,24 +287,7 @@ export const useFollowStore = create<FollowState>((set, get) => {
             set({ trips: [], lastReport: null });
         },
 
-        pruneReports: () => {
-            const { trips, pruneThreshold } = get();
-            const now = new Date().getTime();
-            const cutoffTime = now - pruneThreshold;
-
-            const prunedTrips = trips
-                .map((trip) => {
-                    const prunedReports = trip.reports.filter((report) => {
-                        const reportTime = new Date(report.timestamp).getTime();
-                        return reportTime >= cutoffTime;
-                    });
-
-                    return { reports: prunedReports };
-                })
-                .filter((trip) => trip.reports.length > 0);
-
-            set({ trips: prunedTrips });
-        },
+        pruneReports,
 
         addReports: (reports) => {
             if (reports.length === 0) return;
