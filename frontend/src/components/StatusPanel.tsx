@@ -303,12 +303,6 @@ const MobileHeader = ({
 const MobileLocationMetrics = ({ formattedValues }: { formattedValues: FormattedValues }) => (
     <div className="mb-3 grid grid-cols-3 gap-1.5">
         <StatCard
-            icon={<MdHeight className="mx-auto h-4 w-4" />}
-            value={formattedValues.altitudeFeet}
-            label="FT"
-            isMobile={true}
-        />
-        <StatCard
             icon={<MdNearMe className="mx-auto h-4 w-4" />}
             value={formattedValues.bearingText}
             label={`${formattedValues.bearingFormatted.toString()}°`}
@@ -317,7 +311,13 @@ const MobileLocationMetrics = ({ formattedValues }: { formattedValues: Formatted
         <StatCard
             icon={<MdMyLocation className="mx-auto h-4 w-4" />}
             value={formattedValues.latFormatted}
-            label={formattedValues.lngFormatted}
+            label="Latitude"
+            isMobile={true}
+        />
+        <StatCard
+            icon={<MdMyLocation className="mx-auto h-4 w-4" />}
+            value={formattedValues.lngFormatted}
+            label="Longitude"
             isMobile={true}
         />
     </div>
