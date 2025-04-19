@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router";
-import { SWRConfig } from "swr";
 import { Toaster } from "react-hot-toast";
 import Layout from "./components/Layout";
 import FollowPage from "./pages/FollowPage";
@@ -33,43 +32,33 @@ export default function App() {
 
     return (
         <ErrorBoundary>
-            <SWRConfig
-                value={{
-                    errorRetryCount: 1,
-                    onError: (error) => {
-                        console.error("SWR Error:", error);
-                    },
-                    revalidateOnFocus: false,
-                }}
-            >
-                <BrowserRouter>
-                    <Routes>
+            <BrowserRouter>
+                <Routes>
+                    <Route
+                        path="/"
+                        element={<Layout />}
+                    >
                         <Route
-                            path="/"
-                            element={<Layout />}
-                        >
-                            <Route
-                                index
-                                element={<HomePage />}
-                            />
-                            <Route
-                                path="follow/:deviceKey"
-                                element={
-                                    configLoaded ? (
-                                        <FollowPage googleMapsApiKey={googleMapsApiKey} />
-                                    ) : (
-                                        <div>Loading...</div>
-                                    )
-                                }
-                            />
-                            <Route
-                                path="*"
-                                element={<NotFoundPage />}
-                            />
-                        </Route>
-                    </Routes>
-                </BrowserRouter>
-            </SWRConfig>
+                            index
+                            element={<HomePage />}
+                        />
+                        <Route
+                            path="follow/:deviceKey"
+                            element={
+                                configLoaded ? (
+                                    <FollowPage googleMapsApiKey={googleMapsApiKey} />
+                                ) : (
+                                    <div>Loading...</div>
+                                )
+                            }
+                        />
+                        <Route
+                            path="*"
+                            element={<NotFoundPage />}
+                        />
+                    </Route>
+                </Routes>
+            </BrowserRouter>
             <Toaster
                 position="bottom-right"
                 toastOptions={{

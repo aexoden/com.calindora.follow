@@ -1,23 +1,14 @@
 /* eslint-disable sort-keys */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import { useParams } from "react-router";
-import useSWR from "swr";
-import { apiService, Report, ReportParams } from "../services/api";
-import { useFollowStore } from "../store/followStore";
 import FollowMap from "../components/FollowMap";
 import StatusPanel from "../components/StatusPanel";
 import LoadingError from "../components/LoadingError";
 import { useNavigate } from "react-router";
-import { useToast } from "../hooks/useToast";
-import { ApiError } from "../services/api";
 import { useWindowSize } from "../hooks/useWindowSize";
 import { useJsApiLoader } from "@react-google-maps/api";
+import { useDeviceReports } from "../hooks/useDeviceReports";
 import LoadingIndicator, { LoadingStep } from "../components/LoadingIndicator";
-
-const INITIAL_DATA_DURATION = 86400 * 1000 * 2; // 2 days
-const POLLING_INTERVAL = 5000; // 5 seconds
-const REPORT_LIMIT = 1000;
-const PRUNE_INTERVAL = 60000; // 1 minute
 
 interface FollowPageProps {
     googleMapsApiKey: string;
@@ -25,29 +16,8 @@ interface FollowPageProps {
 
 export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
     const { deviceKey } = useParams<{ deviceKey: string }>();
-
-    const [currentSince, setCurrentSince] = useState(
-        new Date(new Date().getTime() - INITIAL_DATA_DURATION).toISOString(),
-    );
-
-    const [allHistoricalDataLoaded, setAllHistoricalDataLoaded] = useState(false);
-    const [isRefetching, setIsRefetching] = useState(false);
-    const [loadedReports, setLoadedReports] = useState<number>(0);
-
-    const {
-        addReports,
-        clearReports,
-        pruneReports,
-        pruneThreshold,
-        setPruneThreshold,
-        shouldRefetch,
-        settingsDeviceKey,
-        trips,
-    } = useFollowStore();
-
-    const toast = useToast();
-    const navigate = useNavigate();
     const { screenSize } = useWindowSize();
+    const navigate = useNavigate();
 
     // Load Google Maps API
     const { isLoaded: isMapsLoaded } = useJsApiLoader({
@@ -55,235 +25,13 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
         id: "google-map-script",
     });
 
-    // Track when each loading step has started
-    const initialDataStartedRef = useRef(false);
-    const deviceCheckStartedRef = useRef(false);
-
-    // Reset tracking refs when the device key changes
-    useEffect(() => {
-        if (deviceKey) {
-            initialDataStartedRef.current = false;
-            deviceCheckStartedRef.current = false;
-        }
-    }, [deviceKey]);
-
-    const hasAnyData = trips.some((trip) => trip.reports.length > 0);
-
-    const calculateHistoricalSince = useCallback(() => {
-        return new Date(new Date().getTime() - pruneThreshold).toISOString();
-    }, [pruneThreshold]);
-
-    const firstRenderRef = useRef(true);
-    const prevDeviceKeyRef = useRef<string | undefined>(deviceKey);
-
-    // Clear reports when component mounts or deviceKey changes
-    useEffect(() => {
-        if (deviceKey && (firstRenderRef.current || prevDeviceKeyRef.current !== deviceKey)) {
-            clearReports();
-            setAllHistoricalDataLoaded(false);
-            setLoadedReports(0);
-
-            if (settingsDeviceKey) {
-                toast.info(
-                    "Device-specific settings loading",
-                    "Custom map position, colors and time ranges for this device have been loaded.",
-                );
-            }
-
-            setCurrentSince(calculateHistoricalSince());
-
-            firstRenderRef.current = false;
-            prevDeviceKeyRef.current = deviceKey;
-        }
-    }, [clearReports, deviceKey, calculateHistoricalSince, toast, settingsDeviceKey]);
-
-    // Set up automatic pruning on an interval
-    useEffect(() => {
-        const pruneTimer = setInterval(() => {
-            const oldHasData = trips.some((trip) => trip.reports.length > 0);
-            pruneReports();
-
-            // Check if we've pruned all data
-            const newHasData = trips.some((trip) => trip.reports.length > 0);
-
-            if (oldHasData && !newHasData) {
-                toast.info(
-                    "All location data has been pruned",
-                    "No location data falls within the selected time range. Try increasing the time range.",
-                );
-            }
-        }, PRUNE_INTERVAL);
-
-        // Clean up the interval on component unmount
-        return () => {
-            clearInterval(pruneTimer);
-        };
-    }, [pruneReports, toast, trips]);
-
-    // Mark device check as started when the query is first used
-    useEffect(() => {
-        if (deviceKey && !deviceCheckStartedRef.current) {
-            deviceCheckStartedRef.current = true;
-        }
-    }, [deviceKey]);
-
-    // Check if device exists
     const {
-        data: deviceExists,
-        error: deviceError,
-        isLoading: isDeviceLoading,
-    } = useSWR<boolean, Error>(deviceKey ? ["deviceCheck", deviceKey] : null, async () => {
-        try {
-            return await apiService.checkDeviceExists(deviceKey ?? "");
-        } catch (error) {
-            if (error instanceof ApiError && error.status === 404) {
-                return false;
-            }
-
-            throw error;
-        }
-    });
-
-    // Mark initial data loading as started when device exists is confirmed
-    useEffect(() => {
-        if (deviceExists === true && !initialDataStartedRef.current) {
-            initialDataStartedRef.current = true;
-        }
-    }, [deviceExists]);
-
-    // Fetch report count for progress information
-    const { data: totalReports } = useSWR<number, Error>(
-        deviceKey && deviceExists ? ["reportCount", deviceKey, pruneThreshold] : null,
-        async () => {
-            const params: ReportParams = {
-                since: calculateHistoricalSince(),
-            };
-
-            return await apiService.getReportCount(deviceKey ?? "", params);
-        },
-        {
-            revalidateOnFocus: false,
-            revalidateOnReconnect: false,
-            onError: () => {
-                toast.error("Failed to load report count", "Progress information may not be accurate.");
-            },
-        },
-    );
-
-    // Listen for prune threshold changes to trigger refetches when increased
-    useEffect(() => {
-        if (shouldRefetch() && deviceExists && allHistoricalDataLoaded) {
-            setIsRefetching(true);
-            clearReports();
-            setLoadedReports(0);
-            setCurrentSince(calculateHistoricalSince());
-            setAllHistoricalDataLoaded(false);
-        }
-    }, [deviceExists, clearReports, shouldRefetch, calculateHistoricalSince, allHistoricalDataLoaded]);
-
-    // Load initial data
-    const {
-        data: initialReports,
-        error: initialDataError,
-        isLoading: isInitialDataLoading,
-        mutate: refetchInitialData,
-    } = useSWR<Report[], Error>(
-        deviceKey && deviceExists && !allHistoricalDataLoaded ? ["initialReports", deviceKey, currentSince] : null,
-        async () => {
-            const params: ReportParams = {
-                limit: REPORT_LIMIT,
-                order: "asc",
-                since: currentSince,
-            };
-
-            return await apiService.getReports(deviceKey ?? "", params);
-        },
-        {
-            onError: (error) => {
-                toast.error(
-                    "Failed to load initial location data",
-                    error instanceof Error ? error.message : "Unknown error",
-                );
-            },
-            revalidateOnFocus: false,
-            revalidateOnReconnect: false,
-        },
-    );
-
-    // Process initial data
-    useEffect(() => {
-        if (initialReports !== undefined) {
-            if (initialReports.length > 0) {
-                addReports(initialReports);
-                setLoadedReports((prev) => prev + initialReports.length);
-
-                // Only mark as complete if we got fewer reports than the limit.
-                if (initialReports.length < REPORT_LIMIT) {
-                    setAllHistoricalDataLoaded(true);
-
-                    if (isRefetching) {
-                        setIsRefetching(false);
-                        setPruneThreshold(pruneThreshold);
-                    }
-                }
-
-                setCurrentSince(initialReports[initialReports.length - 1].timestamp);
-            } else {
-                setAllHistoricalDataLoaded(true);
-
-                if (isRefetching) {
-                    setIsRefetching(false);
-                    setPruneThreshold(pruneThreshold);
-                }
-            }
-        }
-    }, [addReports, initialReports, isRefetching, pruneThreshold, setPruneThreshold]);
-
-    // Real-time polling for new data
-    const { data: polledReports } = useSWR<Report[], Error>(
-        deviceKey && deviceExists && allHistoricalDataLoaded ? ["pollingReports", deviceKey, currentSince] : null,
-        async () => {
-            const params: ReportParams = {
-                limit: REPORT_LIMIT,
-                order: "asc",
-                since: currentSince,
-            };
-
-            return await apiService.getReports(deviceKey ?? "", params);
-        },
-        {
-            refreshInterval: POLLING_INTERVAL,
-            revalidateOnFocus: false,
-            revalidateOnReconnect: false,
-            dedupingInterval: POLLING_INTERVAL - 500,
-            onError: (error) => {
-                if (!(error instanceof ApiError) || error.status !== 429) {
-                    toast.warning(
-                        "Error refreshing location data",
-                        error instanceof Error ? error.message : "Unknown error",
-                    );
-                }
-            },
-        },
-    );
-
-    // Process polled data
-    useEffect(() => {
-        if (polledReports && polledReports.length > 0) {
-            addReports(polledReports);
-            setCurrentSince(polledReports[polledReports.length - 1].timestamp);
-        }
-    }, [addReports, polledReports]);
-
-    // Handle device check error
-    const handleDeviceRetry = useCallback(() => {
-        void navigate("/");
-    }, [navigate]);
-
-    // Function to handle initial data loading retry
-    const handleInitialDataRetry = useCallback(() => {
-        void refetchInitialData();
-    }, [refetchInitialData]);
+        status: fetchStatus,
+        error: _fetchError,
+        progress: fetchProgress,
+        hasData,
+        isLoading,
+    } = useDeviceReports(deviceKey);
 
     // Define loading steps and their states
     const loadingSteps = useMemo<LoadingStep[]>(() => {
@@ -297,58 +45,33 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
             {
                 key: "device",
                 label: "Verifying device",
-                status: !deviceCheckStartedRef.current ? "unstarted" : isDeviceLoading ? "loading" : "complete",
+                status:
+                    fetchStatus === "idle" ? "unstarted" : fetchStatus === "checking_device" ? "loading" : "complete",
                 relevantFor: ["initial"],
             },
             {
                 key: "initialData",
                 label: "Loading location data",
-                status: !initialDataStartedRef.current
-                    ? "unstarted"
-                    : isInitialDataLoading && !allHistoricalDataLoaded
-                      ? "loading"
-                      : "complete",
-                relevantFor: ["initial"],
-            },
-            {
-                key: "additionalData",
-                label: "Loading additional historical data",
-                status: !isRefetching ? "unstarted" : allHistoricalDataLoaded ? "complete" : "loading",
-                relevantFor: ["refetch"],
+                status:
+                    fetchStatus === "idle" || fetchStatus === "checking_device" || fetchStatus === "device_not_found"
+                        ? "unstarted"
+                        : isLoading
+                          ? "loading"
+                          : "complete",
+                relevantFor: ["initial", "refetch"],
             },
         ];
-    }, [isMapsLoaded, isDeviceLoading, isInitialDataLoading, allHistoricalDataLoaded, isRefetching]);
-
-    // Determine the current operation type
-    const operationType = useMemo<"initial" | "refetch">(() => {
-        return isRefetching ? "refetch" : "initial";
-    }, [isRefetching]);
-
-    // Calculate if we're in a loading state
-    const isLoading = useMemo(() => {
-        if (operationType === "initial") {
-            const initialSteps = loadingSteps.filter((step) => step.relevantFor.includes("initial"));
-            return initialSteps.some((step) => step.status === "loading" || step.status === "unstarted");
-        }
-
-        return isRefetching && !allHistoricalDataLoaded;
-    }, [operationType, isRefetching, allHistoricalDataLoaded, loadingSteps]);
-
-    // Calculate loading progress
-    const loadingProgress = useMemo(() => {
-        if (totalReports === undefined || totalReports === 0) return null;
-        return Math.min(100, Math.round((loadedReports / totalReports) * 100));
-    }, [totalReports, loadedReports]);
+    }, [isMapsLoaded, fetchStatus, isLoading]);
 
     // If device doesn't exist or there's a device error.
-    if (deviceExists === false || deviceError) {
+    if (fetchStatus === "device_not_found") {
         return (
             <>
                 <title>Device Not Found « Calindora Follow</title>
                 <LoadingError
-                    isLoading={isDeviceLoading}
-                    error={deviceError ?? new Error("Device not found")}
-                    onRetry={handleDeviceRetry}
+                    isLoading={false}
+                    error={new Error("Device not found")}
+                    onRetry={() => void navigate("/")}
                     errorTitle="Device Not Found"
                     errorMessage={`We couldn't find the device with key "${deviceKey ?? ""}". Please check the key and try again.`}
                 >
@@ -359,14 +82,16 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
     }
 
     // If there's an error loading initial data.
-    if (initialDataError) {
+    /*
+    // TODO: Needs refactoring.
+    if (fetchError && fetchStatus !== "loading_initial_data" && fetchStatus !== "loading_additional_data") {
         return (
             <>
                 <title>Error Loading Data « Calindora Follow</title>
                 <LoadingError
                     isLoading={false}
-                    error={initialDataError}
-                    onRetry={handleInitialDataRetry}
+                    error={fetchError}
+                    onRetry={retryDataLoading}
                     errorTitle="Error Loading Data"
                     errorMessage="We encountered a problem loading the location data. Please try again."
                 >
@@ -374,9 +99,8 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
                 </LoadingError>
             </>
         );
-    }
+    } */
 
-    // Main UI
     return (
         <>
             <title>{`Following ${deviceKey ? deviceKey.toString() : ""} « Calindora Follow`}</title>
@@ -405,7 +129,7 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
                 <div className="relative h-full flex-grow">
                     <FollowMap isLoaded={isMapsLoaded} />
 
-                    {allHistoricalDataLoaded && !hasAnyData && (
+                    {fetchStatus === "fetching_reports" && !isLoading && !hasData && (
                         <div className="bg-opacity-80 absolute inset-0 flex items-center justify-center bg-white">
                             <div className="rounded-lg bg-white p-6 text-center shadow-lg">
                                 <h3 className="mb-2 text-xl font-semibold text-slate-700">No Data Available</h3>
@@ -421,12 +145,12 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
                 </div>
 
                 {/* Loading indicator */}
-                {isLoading && (
+                {fetchStatus === "fetching_reports" && isLoading && (
                     <div className="bg-opacity-80 absolute inset-0 z-50 bg-white">
                         <LoadingIndicator
                             steps={loadingSteps}
-                            operationType={operationType}
-                            progress={loadingProgress}
+                            operationType="initial"
+                            progress={fetchProgress}
                         />
                     </div>
                 )}

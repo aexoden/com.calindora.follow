@@ -296,6 +296,8 @@ export const useFollowStore = create<FollowState>((set, get) => {
 
             const updatedTrips = [...state.trips];
 
+            console.log("addreports", updatedTrips.length, reports.length, reports[reports.length - 1].timestamp);
+
             for (const report of reports) {
                 if (updatedTrips.length === 0 || !updatedTrips[updatedTrips.length - 1].reports.length) {
                     updatedTrips.push({ reports: [report] });
