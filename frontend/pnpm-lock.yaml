@@ -42,7 +42,7 @@ importers:
         specifier: ^5.5.0
         version: 5.5.0(react@19.1.0)
       react-router:
-        specifier: ^7.4.1
+        specifier: ^7.6.0
         version: 7.6.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       swr:
         specifier: ^2.3.3
