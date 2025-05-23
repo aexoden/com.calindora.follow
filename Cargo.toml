@@ -13,7 +13,7 @@ actix-web = "4.11.0"
 # Needed until actix-web-validator supports validator 0.20
 # actix-web-validator = "6.0.0"
 actix-web-validator = { git = "https://github.com/wlhyl/actix-web-validator.git", rev = "e9439a0313d5e5c871bd3703accadaeaafc6c916" }
-anyhow = "1.0.95"
+anyhow = "1.0.98"
 bigdecimal = { version = "0.4.7", features = ["serde"] }
 config = { git = "https://github.com/mehcode/config-rs.git", rev = "e3c1d0b452639478662a44f15ef6d5b6d969bf9b" }
 dotenvy = "0.15.7"
