@@ -10,11 +10,11 @@
         {
             "groupName": "{{manager}} patch dependencies",
             "groupSlug": "{{manager}}-patch",
-            "matchPackagePatterns": [
-                "*"
-            ],
             "matchUpdateTypes": [
                 "patch"
+            ],
+            "matchPackageNames": [
+                "*"
             ]
         }
     ],
