@@ -37,4 +37,4 @@ uuid = { version = "1.17.0", features = ["serde"] }
 validator = { version = "0.20", features = ["derive"] }
 
 [dev-dependencies]
-reqwest = "=0.12.15"
+reqwest = "=0.12.18"
