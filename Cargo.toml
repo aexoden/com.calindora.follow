@@ -15,7 +15,7 @@ actix-web = "4.11.0"
 actix-web-validator = { git = "https://github.com/wlhyl/actix-web-validator.git", rev = "e9439a0313d5e5c871bd3703accadaeaafc6c916" }
 anyhow = "1.0.98"
 bigdecimal = { version = "0.4.8", features = ["serde"] }
-config = { git = "https://github.com/mehcode/config-rs.git", rev = "e3c1d0b452639478662a44f15ef6d5b6d969bf9b" }
+config = { git = "https://github.com/mehcode/config-rs.git", rev = "e4b8cb1b4d080053282483ee80fb527fec0c57a2" }
 dotenvy = "0.15.7"
 futures = "0.3.31"
 hex = "0.4.3"
