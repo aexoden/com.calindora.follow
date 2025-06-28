@@ -41,7 +41,7 @@ export function consolidateSegments(points: PointWithColor[], deltaEThreshold: n
         if (segment.length === 1) return segment[0].color;
 
         const colors = segment.map((p) => chroma(p.color));
-        return chroma.average(colors, "oklch").hex();
+        return chroma.average(colors, "lab").hex();
     };
 
     // First pass - group by color similiarity
