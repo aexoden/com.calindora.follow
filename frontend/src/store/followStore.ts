@@ -25,7 +25,7 @@ const settingsSchema = z.object({
     autoCenter: z.boolean().default(true),
     colorMode: colorModeSchema.default("time"),
     pruneThreshold: z.number().default(DEFAULT_PRUNE_THRESHOLD),
-    mapSettings: mapSettingsSchema.default({}),
+    mapSettings: mapSettingsSchema.default(mapSettingsSchema.parse({})),
     mobilePanelExpanded: z.boolean().default(false),
     version: z.number().default(1),
 });
