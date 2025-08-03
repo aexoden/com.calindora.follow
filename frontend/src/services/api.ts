@@ -102,7 +102,7 @@ export const apiService = {
             return await reportSchema.parseAsync(response.data);
         } catch (error) {
             if (error instanceof z.ZodError) {
-                throw new ApiError("Invalid report data received from server", 422, error.format());
+                throw new ApiError("Invalid report data received from server", 422, z.treeifyError(error));
             }
 
             throw error;
@@ -115,7 +115,7 @@ export const apiService = {
             return await z.array(reportSchema).parseAsync(response.data);
         } catch (error) {
             if (error instanceof z.ZodError) {
-                throw new ApiError("Invalid report data received from server", 422, error.format());
+                throw new ApiError("Invalid report data received from server", 422, z.treeifyError(error));
             }
 
             throw error;
