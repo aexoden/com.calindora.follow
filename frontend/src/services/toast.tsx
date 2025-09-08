@@ -45,11 +45,11 @@ export const showToast = (
 
     switch (type) {
         case "info":
-            return reactHotToast.success(content, options).toString();
+            return reactHotToast.success(content, options);
         case "warning":
-            return reactHotToast(content, options).toString();
+            return reactHotToast(content, options);
         case "error":
-            return reactHotToast.error(content, options).toString();
+            return reactHotToast.error(content, options);
     }
 };
 

@@ -379,7 +379,7 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
     // Main UI
     return (
         <>
-            <title>{`Following ${deviceKey ? deviceKey.toString() : ""} « Calindora Follow`}</title>
+            <title>{`Following ${deviceKey ?? ""} « Calindora Follow`}</title>
 
             <div className="flex h-full flex-col md:flex-row">
                 {/* Mobile sidebar */}
