@@ -18,7 +18,7 @@
             ]
         }
     ],
-    "prConcurrentLimit": 1,
+    "prConcurrentLimit": 100,
     "prHourlyLimit": 10,
     "rangeStrategy": "bump"
 }
