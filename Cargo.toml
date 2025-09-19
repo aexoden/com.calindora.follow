@@ -13,7 +13,7 @@ actix-web = "4.11.0"
 # Needed until actix-web-validator supports validator 0.20
 # actix-web-validator = "6.0.0"
 actix-web-validator = { git = "https://github.com/wlhyl/actix-web-validator.git", rev = "e9439a0313d5e5c871bd3703accadaeaafc6c916" }
-anyhow = "1.0.99"
+anyhow = "1.0.100"
 bigdecimal = { version = "0.4.8", features = ["serde"] }
 config = { git = "https://github.com/mehcode/config-rs.git", rev = "e4b8cb1b4d080053282483ee80fb527fec0c57a2" }
 dotenvy = "0.15.7"
@@ -27,7 +27,7 @@ serde_json = "1.0.145"
 sha2 = "0.10.9"
 sqlx = { version = "0.8.6", features = ["bigdecimal", "postgres", "runtime-tokio", "time", "tls-rustls", "uuid"] }
 thiserror = "2.0.16"
-time = { version = "0.3.43", features = ["serde-human-readable", "macros"] }
+time = { version = "0.3.44", features = ["serde-human-readable", "macros"] }
 tracing = { version = "0.1.41", features = ["log"] }
 tracing-actix-web = "0.7.19"
 tracing-bunyan-formatter = "0.3.10"
