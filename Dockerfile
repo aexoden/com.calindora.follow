@@ -14,7 +14,7 @@ RUN pnpm install --frozen-lockfile
 COPY frontend/ ./
 RUN pnpm run build
 
-FROM rust:slim@sha256:40d4ee109c7e740b3a242f20cc3b5790af9c725828b86a458765f192391a6a4a AS backend-builder
+FROM rust:slim@sha256:0458e8607a3ce7a6f632dbfeb9a00a167bca0698bf19371f010c3ff3173d7cc7 AS backend-builder
 
 # Build the backend
 WORKDIR /app
