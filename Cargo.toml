@@ -13,7 +13,7 @@ actix-web = "4.11.0"
 actix-web-validator = "7.0.0"
 anyhow = "1.0.100"
 bigdecimal = { version = "0.4.9", features = ["serde"] }
-config = { git = "https://github.com/mehcode/config-rs.git", rev = "e4b8cb1b4d080053282483ee80fb527fec0c57a2" }
+config = { git = "https://github.com/mehcode/config-rs.git", rev = "bf6e25693989669ff83f92360de6213690fd61bd" }
 dotenvy = "0.15.7"
 futures = "0.3.31"
 hex = "0.4.3"
