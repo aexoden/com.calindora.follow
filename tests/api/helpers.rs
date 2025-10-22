@@ -1,5 +1,11 @@
+use std::str::FromStr;
+
 use once_cell::sync::Lazy;
-use sqlx::{PgPool, migrate::MigrateDatabase, postgres::PgPoolOptions};
+use sqlx::{
+    ConnectOptions, PgPool,
+    migrate::MigrateDatabase,
+    postgres::{PgConnectOptions, PgPoolOptions},
+};
 use uuid::Uuid;
 
 use com_calindora_follow::server::{Application, get_db_pool};
@@ -75,9 +81,17 @@ pub async fn run_server() -> TestApplication {
 
         settings.application.address = "127.0.0.1".to_string();
         settings.application.port = 0;
-        settings.database.url = format!(
-            "postgres://postgres:password@localhost/com_calindora_follow_test_{database_name}"
-        );
+
+        // Parse the configured database URL to extract credentials
+        let base_options = PgConnectOptions::from_str(&settings.database.url)
+            .expect("Invalid configured database URL");
+
+        // Build test database URL using configured credentials
+        let test_options = base_options
+            .clone()
+            .database(&format!("com_calindora_follow_test_{database_name}"));
+
+        settings.database.url = test_options.to_url_lossy().to_string();
 
         settings
     };

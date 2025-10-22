@@ -32,9 +32,11 @@ environment variable or create a .env file in the root project directory that
 contains the same variable. The URL should point to a working Postgres server,
 and the database should exist.
 
-If intending to run the test suite, note that the provided database user needs
-to have permission to create databases, as the test suite creates test
-databases. These databases are not currently cleaned up in any way.
+If intending to run the test suite, note that the test suite will use the
+database credentials configured via ```DATABASE_URL``` (or from the settings
+files if not specified). The provided database user needs to have permission to
+create databases, as the test suite creates test databases with random names
+for isolation. These test databases are not currently cleaned up in any way.
 
 In addition, you may sent the `APP_APPLICATION__ADDRESS` and `APP_APPLICATION__PORT`
 environment variables to adjust the listening port and address.
