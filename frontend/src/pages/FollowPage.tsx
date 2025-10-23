@@ -14,7 +14,6 @@ import { useWindowSize } from "../hooks/useWindowSize";
 import { useJsApiLoader } from "@react-google-maps/api";
 import LoadingIndicator, { LoadingStep } from "../components/LoadingIndicator";
 
-const INITIAL_DATA_DURATION = 86400 * 1000 * 2; // 2 days
 const POLLING_INTERVAL = 5000; // 5 seconds
 const REPORT_LIMIT = 1000;
 const PRUNE_INTERVAL = 60000; // 1 minute
@@ -25,14 +24,6 @@ interface FollowPageProps {
 
 export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
     const { deviceKey } = useParams<{ deviceKey: string }>();
-
-    const [currentSince, setCurrentSince] = useState(
-        new Date(new Date().getTime() - INITIAL_DATA_DURATION).toISOString(),
-    );
-
-    const [allHistoricalDataLoaded, setAllHistoricalDataLoaded] = useState(false);
-    const [isRefetching, setIsRefetching] = useState(false);
-    const [loadedReports, setLoadedReports] = useState<number>(0);
 
     const {
         addReports,
@@ -45,6 +36,16 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
         trips,
     } = useFollowStore();
 
+    const calculateHistoricalSince = useCallback(() => {
+        return new Date(new Date().getTime() - pruneThreshold).toISOString();
+    }, [pruneThreshold]);
+
+    const [currentSince, setCurrentSince] = useState(calculateHistoricalSince());
+
+    const [allHistoricalDataLoaded, setAllHistoricalDataLoaded] = useState(false);
+    const [isRefetching, setIsRefetching] = useState(false);
+    const [loadedReports, setLoadedReports] = useState<number>(0);
+
     const toast = useToast();
     const navigate = useNavigate();
     const { screenSize } = useWindowSize();
@@ -55,23 +56,7 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
         id: "google-map-script",
     });
 
-    // Track when each loading step has started
-    const initialDataStartedRef = useRef(false);
-    const deviceCheckStartedRef = useRef(false);
-
-    // Reset tracking refs when the device key changes
-    useEffect(() => {
-        if (deviceKey) {
-            initialDataStartedRef.current = false;
-            deviceCheckStartedRef.current = false;
-        }
-    }, [deviceKey]);
-
     const hasAnyData = trips.some((trip) => trip.reports.length > 0);
-
-    const calculateHistoricalSince = useCallback(() => {
-        return new Date(new Date().getTime() - pruneThreshold).toISOString();
-    }, [pruneThreshold]);
 
     const firstRenderRef = useRef(true);
     const prevDeviceKeyRef = useRef<string | undefined>(deviceKey);
@@ -79,18 +64,12 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
     // Clear reports when component mounts or deviceKey changes
     useEffect(() => {
         if (deviceKey && (firstRenderRef.current || prevDeviceKeyRef.current !== deviceKey)) {
-            clearReports();
-            setAllHistoricalDataLoaded(false);
-            setLoadedReports(0);
-
             if (settingsDeviceKey) {
                 toast.info(
                     "Device-specific settings loading",
                     "Custom map position, colors and time ranges for this device have been loaded.",
                 );
             }
-
-            setCurrentSince(calculateHistoricalSince());
 
             firstRenderRef.current = false;
             prevDeviceKeyRef.current = deviceKey;
@@ -120,13 +99,6 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
         };
     }, [pruneReports, toast, trips]);
 
-    // Mark device check as started when the query is first used
-    useEffect(() => {
-        if (deviceKey && !deviceCheckStartedRef.current) {
-            deviceCheckStartedRef.current = true;
-        }
-    }, [deviceKey]);
-
     // Check if device exists
     const {
         data: deviceExists,
@@ -143,13 +115,6 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
             throw error;
         }
     });
-
-    // Mark initial data loading as started when device exists is confirmed
-    useEffect(() => {
-        if (deviceExists === true && !initialDataStartedRef.current) {
-            initialDataStartedRef.current = true;
-        }
-    }, [deviceExists]);
 
     // Fetch report count for progress information
     const { data: totalReports } = useSWR<number, Error>(
@@ -173,6 +138,7 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
     // Listen for prune threshold changes to trigger refetches when increased
     useEffect(() => {
         if (shouldRefetch() && deviceExists && allHistoricalDataLoaded) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsRefetching(true);
             clearReports();
             setLoadedReports(0);
@@ -183,7 +149,6 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
 
     // Load initial data
     const {
-        data: initialReports,
         error: initialDataError,
         isLoading: isInitialDataLoading,
         mutate: refetchInitialData,
@@ -205,20 +170,23 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
                     error instanceof Error ? error.message : "Unknown error",
                 );
             },
-            revalidateOnFocus: false,
-            revalidateOnReconnect: false,
-        },
-    );
+            onSuccess: (data) => {
+                if (data.length > 0) {
+                    addReports(data);
+                    setLoadedReports((prev) => prev + data.length);
 
-    // Process initial data
-    useEffect(() => {
-        if (initialReports !== undefined) {
-            if (initialReports.length > 0) {
-                addReports(initialReports);
-                setLoadedReports((prev) => prev + initialReports.length);
+                    // Only mark as complete if we got fewer reports than the limit.
+                    if (data.length < REPORT_LIMIT) {
+                        setAllHistoricalDataLoaded(true);
 
-                // Only mark as complete if we got fewer reports than the limit.
-                if (initialReports.length < REPORT_LIMIT) {
+                        if (isRefetching) {
+                            setIsRefetching(false);
+                            setPruneThreshold(pruneThreshold);
+                        }
+                    }
+
+                    setCurrentSince(data[data.length - 1].timestamp);
+                } else {
                     setAllHistoricalDataLoaded(true);
 
                     if (isRefetching) {
@@ -226,21 +194,14 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
                         setPruneThreshold(pruneThreshold);
                     }
                 }
-
-                setCurrentSince(initialReports[initialReports.length - 1].timestamp);
-            } else {
-                setAllHistoricalDataLoaded(true);
-
-                if (isRefetching) {
-                    setIsRefetching(false);
-                    setPruneThreshold(pruneThreshold);
-                }
-            }
-        }
-    }, [addReports, initialReports, isRefetching, pruneThreshold, setPruneThreshold]);
+            },
+            revalidateOnFocus: false,
+            revalidateOnReconnect: false,
+        },
+    );
 
     // Real-time polling for new data
-    const { data: polledReports } = useSWR<Report[], Error>(
+    useSWR<Report[], Error>(
         deviceKey && deviceExists && allHistoricalDataLoaded ? ["pollingReports", deviceKey, currentSince] : null,
         async () => {
             const params: ReportParams = {
@@ -264,16 +225,14 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
                     );
                 }
             },
+            onSuccess: (data) => {
+                if (data.length > 0) {
+                    addReports(data);
+                    setCurrentSince(data[data.length - 1].timestamp);
+                }
+            },
         },
     );
-
-    // Process polled data
-    useEffect(() => {
-        if (polledReports && polledReports.length > 0) {
-            addReports(polledReports);
-            setCurrentSince(polledReports[polledReports.length - 1].timestamp);
-        }
-    }, [addReports, polledReports]);
 
     // Handle device check error
     const handleDeviceRetry = useCallback(() => {
@@ -295,19 +254,14 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
                 relevantFor: ["initial"],
             },
             {
-                key: "device",
-                label: "Verifying device",
-                status: !deviceCheckStartedRef.current ? "unstarted" : isDeviceLoading ? "loading" : "complete",
-                relevantFor: ["initial"],
-            },
-            {
                 key: "initialData",
                 label: "Loading location data",
-                status: !initialDataStartedRef.current
-                    ? "unstarted"
-                    : isInitialDataLoading && !allHistoricalDataLoaded
-                      ? "loading"
-                      : "complete",
+                status:
+                    deviceExists !== true
+                        ? "unstarted"
+                        : isInitialDataLoading && !allHistoricalDataLoaded
+                          ? "loading"
+                          : "complete",
                 relevantFor: ["initial"],
             },
             {
@@ -317,7 +271,7 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
                 relevantFor: ["refetch"],
             },
         ];
-    }, [isMapsLoaded, isDeviceLoading, isInitialDataLoading, allHistoricalDataLoaded, isRefetching]);
+    }, [deviceExists, isMapsLoaded, isInitialDataLoading, allHistoricalDataLoaded, isRefetching]);
 
     // Determine the current operation type
     const operationType = useMemo<"initial" | "refetch">(() => {
@@ -392,7 +346,7 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
                 </div>
 
                 {/* Desktop sidebar */}
-                <div className="hidden p-2 md:block md:w-1/3 lg:w-1/3 xl:!w-96">
+                <div className="hidden p-2 md:block md:w-1/3 lg:w-1/3 xl:w-96!">
                     <StatusPanel
                         className="h-full"
                         isMobile={false}
@@ -402,7 +356,7 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
                 </div>
 
                 {/* Map container */}
-                <div className="relative h-full flex-grow">
+                <div className="relative h-full grow">
                     <FollowMap isLoaded={isMapsLoaded} />
 
                     {allHistoricalDataLoaded && !hasAnyData && (

@@ -191,7 +191,7 @@ const TimeRangeButton = memo(
 const NoDataAlert = () => (
     <div className="mb-4 rounded-lg bg-amber-50 p-3">
         <div className="flex items-start">
-            <MdInfo className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-amber-500" />
+            <MdInfo className="mt-0.5 mr-2 h-5 w-5 shrink-0 text-amber-500" />
             <p className="text-sm text-amber-700">
                 No location data available in the selected time range. Try selecting a longer time range below.
             </p>
@@ -635,6 +635,64 @@ const SettingsSection = ({
     </div>
 );
 
+const ResetConfirmationDialog = ({
+    isResetDialogOpen,
+    setIsResetDialogOpen,
+    isDeviceSpecific,
+    deviceKey,
+    confirmReset,
+}: {
+    isResetDialogOpen: boolean;
+    setIsResetDialogOpen: (open: boolean) => void;
+    isDeviceSpecific: boolean;
+    deviceKey?: string;
+    confirmReset: () => void;
+}) => (
+    <Dialog
+        open={isResetDialogOpen}
+        onClose={() => {
+            setIsResetDialogOpen(false);
+        }}
+        className="relative z-50"
+    >
+        <div
+            className="fixed inset-0 bg-black/30"
+            aria-hidden="true"
+        />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+            <DialogPanel className="mx-auto max-w-sm rounded-lg bg-white p-6 shadow-xl">
+                <DialogTitle className="text-lg font-medium text-gray-900">Reset Settings</DialogTitle>
+
+                <p className="mt-2 text-sm text-gray-500">
+                    Are you sure you want to reset all settings to their default values?
+                    {isDeviceSpecific && deviceKey
+                        ? " This will only affect settings for this device."
+                        : " This will affect global settings for all devices."}
+                </p>
+
+                <div className="mt-4 flex justify-end space-x-2">
+                    <button
+                        type="button"
+                        className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                        onClick={() => {
+                            setIsResetDialogOpen(false);
+                        }}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                        onClick={confirmReset}
+                    >
+                        Reset
+                    </button>
+                </div>
+            </DialogPanel>
+        </div>
+    </Dialog>
+);
+
 // Main StatusPanel component
 export default function StatusPanel({
     className = "",
@@ -693,6 +751,7 @@ export default function StatusPanel({
         if (isMobile && mobilePanelExpanded && !hasSeenMobileHint) {
             try {
                 localStorage.setItem("follow.mobileHint", "true");
+                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setHasSeenMobileHint(true);
             } catch (_e) {
                 // Ignore storage errors
@@ -837,52 +896,6 @@ export default function StatusPanel({
         );
     };
 
-    const ResetConfirmationDialog = () => (
-        <Dialog
-            open={isResetDialogOpen}
-            onClose={() => {
-                setIsResetDialogOpen(false);
-            }}
-            className="relative z-50"
-        >
-            <div
-                className="fixed inset-0 bg-black/30"
-                aria-hidden="true"
-            />
-            <div className="fixed inset-0 flex items-center justify-center p-4">
-                <DialogPanel className="mx-auto max-w-sm rounded-lg bg-white p-6 shadow-xl">
-                    <DialogTitle className="text-lg font-medium text-gray-900">Reset Settings</DialogTitle>
-
-                    <p className="mt-2 text-sm text-gray-500">
-                        Are you sure you want to reset all settings to their default values?
-                        {isDeviceSpecific && deviceKey
-                            ? " This will only affect settings for this device."
-                            : " This will affect global settings for all devices."}
-                    </p>
-
-                    <div className="mt-4 flex justify-end space-x-2">
-                        <button
-                            type="button"
-                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                            onClick={() => {
-                                setIsResetDialogOpen(false);
-                            }}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="button"
-                            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-                            onClick={confirmReset}
-                        >
-                            Reset
-                        </button>
-                    </div>
-                </DialogPanel>
-            </div>
-        </Dialog>
-    );
-
     // Mobile view
     if (isMobile) {
         return (
@@ -926,7 +939,14 @@ export default function StatusPanel({
                         />
                     </div>
                 </div>
-                <ResetConfirmationDialog />
+
+                <ResetConfirmationDialog
+                    isResetDialogOpen={isResetDialogOpen}
+                    setIsResetDialogOpen={setIsResetDialogOpen}
+                    isDeviceSpecific={isDeviceSpecific}
+                    deviceKey={deviceKey}
+                    confirmReset={confirmReset}
+                />
             </div>
         );
     }
@@ -952,7 +972,13 @@ export default function StatusPanel({
                     isCompact={isCompact}
                 />
 
-                <ResetConfirmationDialog />
+                <ResetConfirmationDialog
+                    isResetDialogOpen={isResetDialogOpen}
+                    setIsResetDialogOpen={setIsResetDialogOpen}
+                    isDeviceSpecific={isDeviceSpecific}
+                    deviceKey={deviceKey}
+                    confirmReset={confirmReset}
+                />
             </div>
         );
     }
@@ -988,7 +1014,13 @@ export default function StatusPanel({
                 isCompact={isCompact}
             />
 
-            <ResetConfirmationDialog />
+            <ResetConfirmationDialog
+                isResetDialogOpen={isResetDialogOpen}
+                setIsResetDialogOpen={setIsResetDialogOpen}
+                isDeviceSpecific={isDeviceSpecific}
+                deviceKey={deviceKey}
+                confirmReset={confirmReset}
+            />
         </div>
     );
 }
