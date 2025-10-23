@@ -10,6 +10,9 @@ allow = [
     "Zlib",
 ]
 
+[bans]
+multiple-versions = "allow"
+
 [[licenses.clarify]]
 name = "ring"
 expression = "MIT AND ISC AND OpenSSL"
