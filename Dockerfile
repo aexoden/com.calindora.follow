@@ -7,7 +7,7 @@ ENV NODE_ENV=${NODE_ENV}
 RUN npm install -g pnpm
 
 WORKDIR /app/frontend
-COPY frontend/package.json frontend/pnpm-lock.yaml ./
+COPY frontend/package.json frontend/pnpm-lock.yaml frontend/pnpm-workspace.yaml ./
 
 RUN pnpm install --frozen-lockfile
 
