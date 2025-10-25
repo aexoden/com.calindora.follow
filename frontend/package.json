@@ -12,7 +12,7 @@
     "dependencies": {
         "@headlessui/react": "^2.2.9",
         "@react-google-maps/api": "^2.20.7",
-        "@tailwindcss/vite": "^4.1.15",
+        "@tailwindcss/vite": "^4.1.16",
         "@types/chroma-js": "^3.1.1",
         "axios": "^1.12.2",
         "chroma-js": "^3.1.2",
@@ -23,7 +23,7 @@
         "react-icons": "^5.5.0",
         "react-router": "^7.9.4",
         "swr": "^2.3.6",
-        "tailwindcss": "^4.1.15",
+        "tailwindcss": "^4.1.16",
         "zod": "^4.1.12",
         "zustand": "^5.0.8"
     },
@@ -37,7 +37,7 @@
         "eslint": "9.36.0",
         "eslint-config-prettier": "10.1.8",
         "eslint-plugin-prettier": "5.5.4",
-        "eslint-plugin-react-hooks": "7.0.0",
+        "eslint-plugin-react-hooks": "7.0.1",
         "eslint-plugin-react-refresh": "0.4.24",
         "globals": "16.4.0",
         "jiti": "2.6.1",
@@ -45,7 +45,7 @@
         "prettier-plugin-tailwindcss": "0.6.14",
         "typescript": "5.9.3",
         "typescript-eslint": "8.46.2",
-        "vite": "7.1.11"
+        "vite": "7.1.12"
     },
     "packageManager": "pnpm@10.19.0+sha512.c9fc7236e92adf5c8af42fd5bf1612df99c2ceb62f27047032f4720b33f8eacdde311865e91c411f2774f618d82f320808ecb51718bfa82c060c4ba7c76a32b8"
 }

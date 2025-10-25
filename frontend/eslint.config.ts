@@ -19,6 +19,7 @@ export default defineConfig(
             js.configs.recommended,
             ...tseslint.configs.strictTypeChecked,
             ...tseslint.configs.stylisticTypeChecked,
+            reactHooks.configs.flat.recommended,
             {
                 languageOptions: {
                     parserOptions: {
@@ -36,11 +37,9 @@ export default defineConfig(
         },
         plugins: {
             "@stylistic": stylistic,
-            "react-hooks": reactHooks,
             "react-refresh": reactRefresh,
         },
         rules: {
-            ...reactHooks.configs.recommended.rules,
             "@stylistic/arrow-parens": ["error", "always"],
             "@stylistic/linebreak-style": ["error", "unix"],
             "@stylistic/no-extra-parens": "error",
