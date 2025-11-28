@@ -9,12 +9,12 @@ license = "MIT"
 
 [dependencies]
 actix-cors = "0.7.1"
-actix-files = "0.6.8"
+actix-files = "0.6.9"
 actix-web = "4.11.0"
 actix-web-validator = "7.0.0"
 anyhow = "1.0.100"
 bigdecimal = { version = "0.4.9", features = ["serde"] }
-config = "0.15.18"
+config = "0.15.19"
 dotenvy = "0.15.7"
 futures = "0.3.31"
 hex = "0.4.3"
@@ -27,11 +27,11 @@ sha2 = "0.10.9"
 sqlx = { version = "0.8.6", features = ["bigdecimal", "postgres", "runtime-tokio", "time", "tls-rustls", "uuid"] }
 thiserror = "2.0.17"
 time = { version = "0.3.44", features = ["serde-human-readable", "macros"] }
-tracing = { version = "0.1.41", features = ["log"] }
+tracing = { version = "0.1.43", features = ["log"] }
 tracing-actix-web = "0.7.19"
 tracing-bunyan-formatter = "0.3.10"
 tracing-log = "0.2.0"
-tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
 uuid = { version = "1.18.1", features = ["serde"] }
 validator = { version = "0.20", features = ["derive"] }
 
