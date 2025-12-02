@@ -32,7 +32,7 @@ tracing-actix-web = "0.7.19"
 tracing-bunyan-formatter = "0.3.10"
 tracing-log = "0.2.0"
 tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
-uuid = { version = "1.18.1", features = ["serde"] }
+uuid = { version = "1.19.0", features = ["serde"] }
 validator = { version = "0.20", features = ["derive"] }
 
 [dev-dependencies]
