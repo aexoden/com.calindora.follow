@@ -6,12 +6,20 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
     base: process.env.NODE_ENV === "production" ? "/static/app" : "/",
     build: {
-        rollupOptions: {
+        rolldownOptions: {
             output: {
-                manualChunks: {
-                    maps: ["@react-google-maps/api"],
-                    react: ["react", "react-dom"],
-                    router: ["react-router"],
+                codeSplitting: {
+                    groups: [
+                        {
+                            name: "maps",
+                            test: /node_modules[\\/]@react-google-maps/,
+                        },
+                        {
+                            name: "react",
+                            test: /node_modules[\\/](react|react-dom)/,
+                        },
+                    ],
+                    minSize: 20000,
                 },
             },
         },
