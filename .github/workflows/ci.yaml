@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: "postgres://localhost/follow"
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install devbox
+        uses: jetify-com/devbox-install-action@a0d2d53632934ae004f878c840055956d9f741b0 # v0.14.0
+
+      - name: Initialize database
+        run: devbox run init_db && devbox run create_db && devbox run -- sqlx migrate run
+
+      - name: Format Rust code
+        run: devbox run -- cargo fmt --all -- --check
+
+      - name: Lint Rust code
+        run: devbox run -- cargo clippy --workspace -- -D warnings
+
+      - name: Run Rust tests
+        run: devbox run -- cargo test --workspace --all-features
+
+      - name: Check Rust dependencies for security vulnerabilities
+        run: devbox run -- cargo deny check
+
+      - name: Install frontend dependencies
+        run: devbox run -- bash -c "cd frontend && pnpm install --frozen-lockfile"
+
+      - name: Check TypeScript formatting
+        run: devbox run -- bash -c "cd frontend && pnpm exec prettier --check ."
+
+      - name: Lint TypeScript
+        run: devbox run -- bash -c "cd frontend && pnpm exec eslint . --max-warnings 0"
+
+      - name: Type check TypeScript
+        run: devbox run -- bash -c "cd frontend && pnpm exec tsc -b --noEmit"
