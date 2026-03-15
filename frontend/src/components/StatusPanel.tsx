@@ -1,6 +1,6 @@
 import { memo, useMemo, useState, useEffect } from "react";
 import { formatDistance } from "date-fns";
-import { useFollowStore, ColorMode, DEFAULT_PRUNE_THRESHOLD } from "../store/followStore";
+import { useFollowStore, type ColorMode, DEFAULT_PRUNE_THRESHOLD } from "../store/followStore";
 import { useToast } from "../hooks/useToast";
 import { Dialog, DialogPanel, DialogTitle, Switch } from "@headlessui/react";
 import {

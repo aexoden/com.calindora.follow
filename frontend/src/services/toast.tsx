@@ -1,7 +1,7 @@
 import { toast as reactHotToast } from "react-hot-toast";
-import { ToastOptions } from "react-hot-toast";
+import type { ToastOptions } from "react-hot-toast";
 import { FiAlertTriangle } from "react-icons/fi";
-import { JSX } from "react";
+import type { JSX } from "react";
 
 export type ToastType = "info" | "warning" | "error";
 

@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router";
 import useSWR from "swr";
-import { apiService, Report, ReportParams } from "../services/api";
+import { apiService, type Report, type ReportParams } from "../services/api";
 import { useFollowStore } from "../store/followStore";
 import FollowMap from "../components/FollowMap";
 import StatusPanel from "../components/StatusPanel";
@@ -12,7 +12,7 @@ import { useToast } from "../hooks/useToast";
 import { ApiError } from "../services/api";
 import { useWindowSize } from "../hooks/useWindowSize";
 import { useJsApiLoader } from "@react-google-maps/api";
-import LoadingIndicator, { LoadingStep } from "../components/LoadingIndicator";
+import LoadingIndicator, { type LoadingStep } from "../components/LoadingIndicator";
 
 const POLLING_INTERVAL = 5000; // 5 seconds
 const REPORT_LIMIT = 1000;
@@ -185,7 +185,11 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
                         }
                     }
 
-                    setCurrentSince(data[data.length - 1].timestamp);
+                    const lastReport = data[data.length - 1];
+
+                    if (lastReport) {
+                        setCurrentSince(lastReport.timestamp);
+                    }
                 } else {
                     setAllHistoricalDataLoaded(true);
 
@@ -228,7 +232,10 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
             onSuccess: (data) => {
                 if (data.length > 0) {
                     addReports(data);
-                    setCurrentSince(data[data.length - 1].timestamp);
+                    const lastReport = data[data.length - 1];
+                    if (lastReport) {
+                        setCurrentSince(lastReport.timestamp);
+                    }
                 }
             },
         },

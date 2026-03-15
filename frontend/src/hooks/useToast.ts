@@ -1,5 +1,5 @@
 import { toast as toastService } from "../services/toast";
-import { ToastOptions } from "react-hot-toast";
+import type { ToastOptions } from "react-hot-toast";
 
 export function useToast() {
     return {

@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { FiLoader, FiAlertTriangle, FiRefreshCw } from "react-icons/fi";
 
 interface LoadingErrorProps {

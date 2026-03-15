@@ -19,29 +19,47 @@ export interface Segment {
 }
 
 export function consolidateSegments(points: PointWithColor[], deltaEThreshold: number): Segment[] {
-    if (points.length < 2) {
-        return points.length === 1
+    const first = points[0];
+
+    if (!first || points.length < 2) {
+        return first
             ? [
                   {
-                      color: points[0].color,
-                      pathEnd: points[0].id,
-                      pathStart: points[0].id,
-                      points: [points[0].point],
-                      zIndex: points[0].timestamp,
+                      color: first.color,
+                      pathEnd: first.id,
+                      pathStart: first.id,
+                      points: [first.point],
+                      zIndex: first.timestamp,
                   },
               ]
             : [];
     }
 
     const initialSegments: Segment[] = [];
-    let currentSegment = [points[0]];
-    let currentColor = points[0].color;
+    let currentSegment: PointWithColor[] = [first];
+    let currentColor = first.color;
 
     const getRepresentativeColor = (segment: PointWithColor[]) => {
-        if (segment.length === 1) return segment[0].color;
+        const segFirst = segment[0];
+        if (!segFirst) return "#000000";
+        if (segment.length === 1) return segFirst.color;
 
         const colors = segment.map((p) => chroma(p.color));
         return chroma.average(colors, "lab").hex();
+    };
+
+    const pushSegment = (segment: PointWithColor[]) => {
+        const start = segment[0];
+        const end = segment[segment.length - 1];
+        if (!start || !end) return;
+
+        initialSegments.push({
+            color: getRepresentativeColor(segment),
+            pathEnd: end.id,
+            pathStart: start.id,
+            points: segment.map((p) => p.point),
+            zIndex: end.timestamp,
+        });
     };
 
     // First pass - group by color similiarity
@@ -54,15 +72,7 @@ export function consolidateSegments(points: PointWithColor[], deltaEThreshold: n
         // If the color difference exceeds the threshold, finalize the current segment. The current point needs to both
         // end the current segment and start a new one, because otherwise there would be a gap.
         if (deltaE > deltaEThreshold) {
-            const representativeColor = getRepresentativeColor(currentSegment);
-
-            initialSegments.push({
-                color: representativeColor,
-                pathEnd: currentSegment[currentSegment.length - 1].id,
-                pathStart: currentSegment[0].id,
-                points: currentSegment.map((p) => p.point),
-                zIndex: currentSegment[currentSegment.length - 1].timestamp,
-            });
+            pushSegment(currentSegment);
 
             currentSegment = [point];
             currentColor = point.color;
@@ -71,15 +81,7 @@ export function consolidateSegments(points: PointWithColor[], deltaEThreshold: n
 
     // Add the last segment
     if (currentSegment.length > 0) {
-        const representativeColor = getRepresentativeColor(currentSegment);
-
-        initialSegments.push({
-            color: representativeColor,
-            pathEnd: currentSegment[currentSegment.length - 1].id,
-            pathStart: currentSegment[0].id,
-            points: currentSegment.map((p) => p.point),
-            zIndex: currentSegment[currentSegment.length - 1].timestamp,
-        });
+        pushSegment(currentSegment);
     }
 
     return initialSegments;

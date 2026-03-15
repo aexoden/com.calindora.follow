@@ -1,10 +1,10 @@
 import { memo, useEffect, useMemo, useState, useCallback } from "react";
 import { GoogleMap, MarkerF as Marker, CircleF as Circle, PolylineF as Polyline } from "@react-google-maps/api";
 import { useFollowStore } from "../store/followStore";
-import { Report } from "../services/api";
+import type { Report } from "../services/api";
 import { useToast } from "../hooks/useToast";
 import { getColorForValue, getGradientThreshold } from "../services/color";
-import { PointWithColor, consolidateSegments } from "../util/path";
+import { type PointWithColor, consolidateSegments } from "../util/path";
 
 const containerStyle = {
     height: "100%",
@@ -254,6 +254,8 @@ function FollowMap({ className = "", isLoaded = false }: FollowMapProps) {
                         if (trip.reports.length === 0) return null;
 
                         const pathStyles = allPathStyles[tripIndex];
+
+                        if (!pathStyles) return null;
 
                         return pathStyles.map((path) => (
                             <Polyline

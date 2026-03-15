@@ -12,12 +12,14 @@
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
+    "verbatimModuleSyntax": true,
 
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
     "noUncheckedSideEffectImports": true
   },
   "include": ["eslint.config.ts", "tailwind.config.ts", "vite.config.ts"]

@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { ColorMode } from "../store/followStore";
+import type { ColorMode } from "../store/followStore";
 import { GRADIENTS, getGradientString } from "../services/color";
 
 interface ColorLegendProps {

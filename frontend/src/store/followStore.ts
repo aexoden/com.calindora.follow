@@ -1,6 +1,6 @@
 /* eslint-disable sort-keys */
 import { create } from "zustand";
-import { Report } from "../services/api";
+import type { Report } from "../services/api";
 import { z } from "zod";
 
 // Define the threshold for splitting trips (2 minutes)
@@ -297,11 +297,17 @@ export const useFollowStore = create<FollowState>((set, get) => {
             const updatedTrips = [...state.trips];
 
             for (const report of reports) {
-                if (updatedTrips.length === 0 || !updatedTrips[updatedTrips.length - 1].reports.length) {
+                const lastTrip = updatedTrips[updatedTrips.length - 1];
+
+                if (!lastTrip || updatedTrips.length === 0 || !lastTrip.reports.length) {
                     updatedTrips.push({ reports: [report] });
                 } else {
-                    const lastTrip = updatedTrips[updatedTrips.length - 1];
                     const lastReport = lastTrip.reports[lastTrip.reports.length - 1];
+
+                    if (!lastReport) {
+                        updatedTrips.push({ reports: [report] });
+                        continue;
+                    }
 
                     const timeDiff = new Date(report.timestamp).getTime() - new Date(lastReport.timestamp).getTime();
 
