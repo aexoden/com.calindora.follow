@@ -1,2 +1,5 @@
-/.env
-/target
+# Environment
+.env
+
+# Rust
+target/
