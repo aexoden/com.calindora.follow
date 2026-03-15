@@ -28,13 +28,13 @@ pub struct Application {
 
 impl Application {
     pub async fn build(settings: Settings) -> std::io::Result<Self> {
-        let db_pool = get_db_pool(&settings.database);
+        let db_pool = get_db_pool(&settings.database)?;
 
         tracing::info!("Attempting to migrate database");
-        sqlx::migrate!()
-            .run(&db_pool)
-            .await
-            .expect("Failed to migrate database");
+        if let Err(e) = sqlx::migrate!().run(&db_pool).await {
+            tracing::error!("Failed to migrate database: {e}");
+            return Err(std::io::Error::other("Failed to migrate database"));
+        }
 
         let address = format!(
             "{}:{}",
@@ -43,13 +43,14 @@ impl Application {
 
         let listener = TcpListener::bind(&address)?;
         tracing::info!("Listening on {}", &address);
-        let port = listener.local_addr().unwrap().port();
+        let port = listener.local_addr()?.port();
 
         let server = run(listener, db_pool, settings)?;
 
         Ok(Self { port, server })
     }
 
+    #[must_use]
     pub fn port(&self) -> u16 {
         self.port
     }
@@ -59,15 +60,17 @@ impl Application {
     }
 }
 
-pub fn get_db_pool(settings: &DatabaseSettings) -> PgPool {
-    let options =
-        PgConnectOptions::from_str(&settings.url).expect("Invalid configured database URL");
+pub fn get_db_pool(settings: &DatabaseSettings) -> std::io::Result<PgPool> {
+    let options = PgConnectOptions::from_str(&settings.url).map_err(|e| {
+        tracing::error!("Failed to parse database URL: {e}");
+        std::io::Error::other("Failed to parse database URL")
+    })?;
 
     let options = options.log_statements(tracing::log::LevelFilter::Trace);
 
-    PgPoolOptions::new()
+    Ok(PgPoolOptions::new()
         .max_connections(20)
-        .connect_lazy_with(options)
+        .connect_lazy_with(options))
 }
 
 fn run(listener: TcpListener, db_pool: PgPool, settings: Settings) -> std::io::Result<Server> {

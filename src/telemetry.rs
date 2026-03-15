@@ -43,6 +43,13 @@ where
 }
 
 pub fn init_subscriber(subscriber: impl Subscriber + Send + Sync) {
-    LogTracer::init().expect("Failed to set logger");
-    set_global_default(subscriber).expect("Failed to set subscriber");
+    if let Err(e) = LogTracer::init() {
+        eprintln!("Failed to set logger: {e}");
+        std::process::exit(1);
+    }
+
+    if let Err(e) = set_global_default(subscriber) {
+        eprintln!("Failed to set subscriber: {e}");
+        std::process::exit(1);
+    }
 }

@@ -1,6 +1,7 @@
 use crate::helpers::run_server;
 
 #[actix_web::test]
+#[expect(clippy::expect_used)]
 async fn health_check_works() {
     let server = run_server().await;
     let client = reqwest::Client::new();

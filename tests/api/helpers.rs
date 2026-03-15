@@ -1,6 +1,5 @@
 use std::str::FromStr;
 
-use once_cell::sync::Lazy;
 use sqlx::{
     ConnectOptions, PgPool,
     migrate::MigrateDatabase,
@@ -12,7 +11,7 @@ use com_calindora_follow::server::{Application, get_db_pool};
 use com_calindora_follow::settings::{DatabaseSettings, Settings, get_settings};
 use com_calindora_follow::telemetry::{get_subscriber, init_subscriber};
 
-static TRACING: Lazy<()> = Lazy::new(|| {
+static TRACING: std::sync::LazyLock<()> = std::sync::LazyLock::new(|| {
     if std::env::var("TEST_LOG").is_ok() {
         init_subscriber(get_subscriber(
             "test".into(),
@@ -50,6 +49,7 @@ impl TestApplication {
         Ok((api_key, api_secret))
     }
 
+    #[expect(clippy::expect_used)]
     pub async fn post_report(
         &self,
         api_key: &str,
@@ -71,8 +71,9 @@ impl TestApplication {
     }
 }
 
+#[expect(clippy::expect_used)]
 pub async fn run_server() -> TestApplication {
-    Lazy::force(&TRACING);
+    std::sync::LazyLock::force(&TRACING);
 
     let database_name = Uuid::new_v4().to_string();
 
@@ -109,11 +110,13 @@ pub async fn run_server() -> TestApplication {
     TestApplication {
         base_url: format!("http://127.0.0.1:{application_port}"),
         port: application_port,
-        db: get_db_pool(&settings.database),
+        db: get_db_pool(&settings.database)
+            .expect("Failed to connect to database for test application"),
         settings,
     }
 }
 
+#[expect(clippy::expect_used)]
 async fn configure_database(settings: &DatabaseSettings) -> PgPool {
     sqlx::Postgres::create_database(&settings.url)
         .await

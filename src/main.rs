@@ -10,8 +10,17 @@ async fn main() -> std::io::Result<()> {
         std::io::stdout,
     ));
 
-    let settings = get_settings().expect("Failed to read settings");
-    let application = Application::build(settings).await?;
+    let settings = get_settings();
 
-    application.run().await
+    match settings {
+        Ok(settings) => {
+            let application = Application::build(settings).await?;
+
+            application.run().await
+        }
+        Err(e) => {
+            tracing::error!("Failed to read configuration: {e}");
+            return Err(std::io::Error::other("Failed to read configuration"));
+        }
+    }
 }

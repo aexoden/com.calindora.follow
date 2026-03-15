@@ -50,11 +50,9 @@ impl ResponseError for ApiError {
 
     fn status_code(&self) -> StatusCode {
         match self {
-            Self::InvalidSignature => StatusCode::UNAUTHORIZED,
-            Self::MissingSignature => StatusCode::UNAUTHORIZED,
+            Self::InvalidSignature | Self::MissingSignature => StatusCode::UNAUTHORIZED,
             Self::UnexpectedError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::UnknownApiKey => StatusCode::NOT_FOUND,
-            Self::UnknownReportId => StatusCode::NOT_FOUND,
+            Self::UnknownApiKey | Self::UnknownReportId => StatusCode::NOT_FOUND,
         }
     }
 }
@@ -92,6 +90,7 @@ pub async fn get_report_count(
     let since = if let Some(since) = parameters.since {
         since
     } else {
+        #[expect(clippy::unwrap_used)]
         OffsetDateTime::from_unix_timestamp(0).unwrap()
     };
 
@@ -155,8 +154,7 @@ pub async fn get_reports(
 
     let ordering = match parameters.order {
         Some(Ordering::Ascending) => Ordering::Ascending,
-        Some(Ordering::Descending) => Ordering::Descending,
-        None => Ordering::Descending,
+        Some(Ordering::Descending) | None => Ordering::Descending,
     };
 
     let limit = if let Some(limit) = parameters.limit {
@@ -168,6 +166,7 @@ pub async fn get_reports(
     let since = if let Some(since) = parameters.since {
         since
     } else {
+        #[expect(clippy::unwrap_used)]
         OffsetDateTime::from_unix_timestamp(0).unwrap()
     };
 
@@ -184,7 +183,7 @@ pub async fn get_reports(
             device.id,
             since,
             until,
-            limit as i32
+            i64::try_from(limit).unwrap_or(i64::MAX)
         ).fetch_all(&**db).await,
         Ordering::Descending => sqlx::query_as!(
             Report,
@@ -192,7 +191,7 @@ pub async fn get_reports(
             device.id,
             since,
             until,
-            limit as i32
+            i64::try_from(limit).unwrap_or(i64::MAX)
         ).fetch_all(&**db).await,
     }
     .context("Failed to fetch reports for the device associated with the provided API key")?;
@@ -220,7 +219,11 @@ pub async fn post_report(
         .to_str()
         .map_err(|_| ApiError::InvalidSignature)?;
 
-    if report_request.get_signature(device.api_secret.expose_secret()) != signature {
+    let calculated_signature = report_request
+        .get_signature(device.api_secret.expose_secret())
+        .context("Failed to calculate the expected signature for the provided report")?;
+
+    if calculated_signature != signature {
         return Err(ApiError::InvalidSignature);
     }
 

@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use anyhow::Context;
 use bigdecimal::BigDecimal;
 use hmac::{Hmac, Mac};
 use serde::{Deserialize, Serialize};
@@ -54,26 +55,28 @@ pub struct CreateReportRequest {
 }
 
 impl CreateReportRequest {
-    pub fn get_signature(&self, secret: &str) -> String {
-        let mut input = String::with_capacity(128);
-
-        input.push_str(&self.timestamp.format(TIMESTAMP_FORMAT).unwrap());
-        input.push_str(&format!("{:.12}", self.latitude));
-        input.push_str(&format!("{:.12}", self.longitude));
-        input.push_str(&format!("{:.12}", self.altitude));
-        input.push_str(&format!("{:.12}", self.speed));
-        input.push_str(&format!("{:.12}", self.bearing));
-        input.push_str(&format!("{:.12}", self.accuracy));
-
+    pub fn get_signature(&self, secret: &str) -> anyhow::Result<String> {
         type HmacSha256 = Hmac<Sha256>;
 
-        let mut mac = HmacSha256::new_from_slice(secret.as_bytes()).unwrap();
+        let timestamp = &self
+            .timestamp
+            .format(TIMESTAMP_FORMAT)
+            .context("Failed to format timestamp for signature generation")?;
+
+        let input = format!(
+            "{timestamp}{:.12}{:.12}{:.12}{:.12}{:.12}{:.12}",
+            self.latitude, self.longitude, self.altitude, self.speed, self.bearing, self.accuracy
+        );
+
+        let mut mac = HmacSha256::new_from_slice(secret.as_bytes())
+            .context("Failed to create HMAC instance for signature generation")?;
         mac.update(input.as_bytes());
 
-        hex::encode(mac.finalize().into_bytes())
+        Ok(hex::encode(mac.finalize().into_bytes()))
     }
 }
 
+#[expect(clippy::unwrap_used)]
 fn validate_latitude(value: &BigDecimal) -> Result<(), ValidationError> {
     if *value < BigDecimal::from_str("-90.0").unwrap()
         || *value > BigDecimal::from_str("90.0").unwrap()
@@ -84,6 +87,7 @@ fn validate_latitude(value: &BigDecimal) -> Result<(), ValidationError> {
     }
 }
 
+#[expect(clippy::unwrap_used)]
 fn validate_longitude(value: &BigDecimal) -> Result<(), ValidationError> {
     if *value < BigDecimal::from_str("-180.0").unwrap()
         || *value > BigDecimal::from_str("180.0").unwrap()
@@ -94,6 +98,7 @@ fn validate_longitude(value: &BigDecimal) -> Result<(), ValidationError> {
     }
 }
 
+#[expect(clippy::unwrap_used)]
 fn validate_positive(value: &BigDecimal) -> Result<(), ValidationError> {
     if *value < BigDecimal::from_str("0.0").unwrap() {
         Err(ValidationError::new(
@@ -104,6 +109,7 @@ fn validate_positive(value: &BigDecimal) -> Result<(), ValidationError> {
     }
 }
 
+#[expect(clippy::unwrap_used)]
 fn validate_bearing(value: &BigDecimal) -> Result<(), ValidationError> {
     if *value < BigDecimal::from_str("0.0").unwrap()
         || *value > BigDecimal::from_str("360.0").unwrap()

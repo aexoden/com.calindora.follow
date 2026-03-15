@@ -54,6 +54,7 @@ impl ReportRequest {
             self.accuracy
         );
 
+        #[expect(clippy::unwrap_used)]
         let mut mac = HmacSha256::new_from_slice(secret.as_bytes()).unwrap();
         mac.update(input.as_bytes());
 
@@ -62,6 +63,7 @@ impl ReportRequest {
 }
 
 #[actix_web::test]
+#[expect(clippy::expect_used)]
 async fn post_report_returns_201_for_valid_report() {
     let server = run_server().await;
     let (api_key, api_secret) = server
@@ -91,6 +93,7 @@ async fn post_report_returns_201_for_valid_report() {
         ),
     ];
 
+    #[expect(clippy::unwrap_used)]
     for test_case in test_cases {
         let body = serde_json::to_string(&test_case).unwrap();
         let signature = test_case.signature(&api_secret);
@@ -107,13 +110,15 @@ async fn post_report_returns_201_for_valid_report() {
             "application/json",
             response.headers().get("Content-Type").unwrap(),
             "The API did not return a JSON reponse when a valid report was submitted",
-        )
+        );
     }
 }
 
 #[actix_web::test]
+#[expect(clippy::unwrap_used)]
 async fn post_report_returns_401_for_invalid_signature() {
     let server = run_server().await;
+    #[expect(clippy::expect_used)]
     let (api_key, _) = server
         .create_random_device()
         .await
@@ -136,12 +141,14 @@ async fn post_report_returns_401_for_invalid_signature() {
         "application/json",
         response.headers().get("Content-Type").unwrap(),
         "The API did not return a JSON error reponse for an invalid signature",
-    )
+    );
 }
 
 #[actix_web::test]
+#[expect(clippy::unwrap_used)]
 async fn post_report_returns_400_for_invalid_report() {
     let server = run_server().await;
+    #[expect(clippy::expect_used)]
     let (api_key, api_secret) = server
         .create_random_device()
         .await
@@ -223,11 +230,12 @@ async fn post_report_returns_400_for_invalid_report() {
             "application/json",
             response.headers().get("Content-Type").unwrap(),
             "The API did not return a JSON error reponse when the payload was invalid: {description}",
-        )
+        );
     }
 }
 
 #[actix_web::test]
+#[expect(clippy::unwrap_used)]
 async fn post_report_returns_404_for_invalid_api_key() {
     let server = run_server().await;
 
@@ -249,10 +257,12 @@ async fn post_report_returns_404_for_invalid_api_key() {
         "application/json",
         response.headers().get("Content-Type").unwrap(),
         "The API did not return a JSON error reponse for an invalid API key",
-    )
+    );
 }
 
 #[actix_web::test]
+#[expect(clippy::expect_used)]
+#[expect(clippy::unwrap_used)]
 async fn post_report_persists_valid_report() {
     let server = run_server().await;
     let (api_key, api_secret) = server
@@ -285,6 +295,8 @@ async fn post_report_persists_valid_report() {
 }
 
 #[actix_web::test]
+#[expect(clippy::expect_used)]
+#[expect(clippy::unwrap_used)]
 async fn post_report_fails_if_fatal_database_error() {
     let server = run_server().await;
     let (api_key, api_secret) = server
@@ -314,5 +326,5 @@ async fn post_report_fails_if_fatal_database_error() {
         "application/json",
         response.headers().get("Content-Type").unwrap(),
         "The API did not return a JSON error reponse after a fatal database error",
-    )
+    );
 }

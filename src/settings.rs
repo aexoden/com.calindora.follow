@@ -28,6 +28,7 @@ pub enum Environment {
 }
 
 impl Environment {
+    #[must_use]
     pub fn as_str(&self) -> &'static str {
         match self {
             Environment::Development => "development",
@@ -50,15 +51,23 @@ impl TryFrom<String> for Environment {
     }
 }
 
+#[must_use]
 pub fn get_environment() -> Environment {
     dotenvy::var("APP_ENVIRONMENT")
         .unwrap_or_else(|_| "development".into())
         .try_into()
-        .expect("Failed to parse APP_ENVIRONMENT")
+        .unwrap_or_else(|e| {
+            tracing::error!("Failed to parse APP_ENVIRONMENT '{e}', defaulting to 'development'");
+            Environment::Development
+        })
 }
 
 pub fn get_settings() -> Result<Settings, config::ConfigError> {
-    let base_path = std::env::current_dir().expect("Failed to determine the current directory");
+    let base_path = std::env::current_dir().unwrap_or_else(|e| {
+        tracing::error!("Failed to determine the current directory: {e}");
+        std::process::exit(1);
+    });
+
     let settings_path = base_path.join("settings");
 
     let environment_filename = format!("{}.yaml", get_environment().as_str());
