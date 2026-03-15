@@ -1,0 +1,87 @@
+# Pre-commit configuration
+# Install: pre-commit install
+# Update: pre-commit autoupdate
+
+repos:
+  # General hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-symlinks
+      - id: check-toml
+      - id: check-vcs-permalinks
+      - id: check-yaml
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  # Conventional commits
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.3.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+
+  # Rust formatting, linting, and type checking
+  - repo: local
+    hooks:
+      - id: rustfmt
+        name: rustfmt
+        description: Format Rust code using rustfmt
+        entry: devbox run -- cargo fmt --all --check
+        language: system
+        pass_filenames: false
+
+      - id: clippy
+        name: clippy
+        description: Lint Rust code using clippy
+        entry: devbox run -- cargo clippy --workspace -- -D warnings
+        language: system
+        pass_filenames: false
+
+      - id: test
+        name: cargo test
+        description: Run Rust tests using cargo test
+        entry: devbox run -- cargo test --workspace --all-features
+        language: system
+        pass_filenames: false
+
+      - id: cargo-deny
+        name: cargo-deny
+        description: Check Rust dependencies for security vulnerabilities using cargo-deny
+        entry: devbox run -- cargo deny check
+        language: system
+        pass_filenames: false
+
+  # TypeScript formatting, linting, and type checking
+  - repo: local
+    hooks:
+      - id: pnpm-lock
+        name: pnpm lockfile check
+        description: Check that pnpm-lock.yaml is up to date
+        entry: devbox run -- bash -c "cd frontend && pnpm install --frozen-lockfile"
+        language: system
+        pass_filenames: false
+
+      - id: prettier
+        name: Prettier code formatter
+        description: Format TypeScript files using Prettier
+        entry: devbox run -- bash -c "cd frontend && pnpm exec prettier --check ."
+        language: system
+        pass_filenames: false
+
+      - id: eslint
+        name: ESLint linter
+        description: Lint TypeScript files using ESLint
+        entry: devbox run -- bash -c "cd frontend && pnpm exec eslint . --max-warnings 0"
+        language: system
+        pass_filenames: false
+
+      - id: tsc
+        name: TypeScript type checker
+        description: Type check TypeScript files using tsc
+        entry: devbox run -- bash -c "cd frontend && pnpm exec tsc -b --noEmit"
+        language: system
+        pass_filenames: false
