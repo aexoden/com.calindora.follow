@@ -10,7 +10,6 @@ npm-debug.log
 
 # Rust
 target
-Cargo.lock
 
 # Environment variables
 **/.env
