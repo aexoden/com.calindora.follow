@@ -22,7 +22,7 @@ COPY . .
 RUN cargo install --path .
 
 # Build the runtime image
-FROM debian:stable-slim@sha256:a771c85b2287eae7ce8fe0a4c2637d575c5d991555ae680c187c5572153648d9 AS runtime
+FROM debian:stable-slim@sha256:85dfcffff3c1e193877f143d05eaba8ae7f3f95cb0a32e0bc04a448077e1ac69 AS runtime
 
 WORKDIR /app
 
