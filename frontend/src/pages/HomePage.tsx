@@ -7,7 +7,7 @@ export default function HomePage() {
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = (e: React.SubmitEvent) => {
         e.preventDefault();
 
         if (!deviceKey.trim()) {
