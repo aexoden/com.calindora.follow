@@ -1,5 +1,5 @@
 # Build the frontend
-FROM node:24.14.0-slim@sha256:ff4496dbf25ecc31fb817ebf9fa6358855202423594ef3eeb1e28adf97e5d417 AS frontend-builder
+FROM node:24.14.0-slim@sha256:d8e448a56fc63242f70026718378bd4b00f8c82e78d20eefb199224a4d8e33d8 AS frontend-builder
 
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
