@@ -15,7 +15,7 @@ COPY frontend/ ./
 RUN pnpm run build
 
 # Build the backend
-FROM rust:slim@sha256:48bbdde831f471e2dcd2f06f352ae48213bdae05251317e4bdd427fedcae2c94 AS backend-builder
+FROM rust:slim@sha256:da9dab7a6b8dd428e71718402e97207bb3e54167d37b5708616050b1e8f60ed6 AS backend-builder
 
 WORKDIR /app
 
