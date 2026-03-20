@@ -1,6 +1,6 @@
 # Calindora Follow
 
-![Rust](https://github.com/aexoden/com.calindora.follow/actions/workflows/general.yml/badge.svg)
+![Rust](https://github.com/aexoden/com.calindora.follow/actions/workflows/ci.yaml/badge.svg)
 
 This is a web application to allow users to automatically submit location
 reports and have those reports displayed on a map. It is primarily useful for
