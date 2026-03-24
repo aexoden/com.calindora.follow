@@ -16,7 +16,7 @@
     "pkg-config": "0.29.2",
     "postgresql": "17.9",
     "pre-commit": "4.5.1",
-    "rustc": "1.93.0",
+    "rustc": "1.94.0",
     "rustfmt": "1.93.0",
     "sqlx-cli": "0.8.6"
   },
