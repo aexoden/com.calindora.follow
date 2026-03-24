@@ -17,7 +17,7 @@
     "postgresql": "17.9",
     "pre-commit": "4.5.1",
     "rustc": "1.93.0",
-    "rustfmt": "1.93.0",
+    "rustfmt": "1.94.0",
     "sqlx-cli": "0.8.6"
   },
   "shell": {
