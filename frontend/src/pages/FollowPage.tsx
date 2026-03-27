@@ -44,7 +44,7 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
 
     const [allHistoricalDataLoaded, setAllHistoricalDataLoaded] = useState(false);
     const [isRefetching, setIsRefetching] = useState(false);
-    const [loadedReports, setLoadedReports] = useState<number>(0);
+    const [loadedReports, setLoadedReports] = useState(0);
 
     const toast = useToast();
     const navigate = useNavigate();
@@ -59,7 +59,7 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
     const hasAnyData = trips.some((trip) => trip.reports.length > 0);
 
     const firstRenderRef = useRef(true);
-    const prevDeviceKeyRef = useRef<string | undefined>(deviceKey);
+    const prevDeviceKeyRef = useRef(deviceKey);
 
     // Clear reports when component mounts or deviceKey changes
     useEffect(() => {

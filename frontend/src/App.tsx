@@ -11,8 +11,8 @@ import { configService } from "./services/config";
 import { useToast } from "./hooks/useToast";
 
 export default function App() {
-    const [googleMapsApiKey, setGoogleMapsApiKey] = useState<string>("");
-    const [configLoaded, setConfigLoaded] = useState<boolean>(false);
+    const [googleMapsApiKey, setGoogleMapsApiKey] = useState("");
+    const [configLoaded, setConfigLoaded] = useState(false);
 
     const toast = useToast();
 
