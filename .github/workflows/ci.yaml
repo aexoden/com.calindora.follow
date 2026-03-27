@@ -14,6 +14,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check-versions:
+    name: Check version sync between Devbox and Docker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Check Rust versions
+        run: |
+          set -euo pipefail
+
+          declare -A versions
+          versions[devbox]=$(jq -r '.packages.rustc' devbox.json)
+          versions[docker]=$(grep -oP '(?<=FROM rust:)[^-]+' Dockerfile)
+
+          unique=$(printf '%s\n' "${versions[@]}" | sort -u | wc -l)
+          if [[ "$unique" -ne 1 ]]; then
+            echo "::error::Rust version mismatch detected:"
+            for source in "${!versions[@]}"; do
+              echo "  ${source}: ${versions[$source]}"
+            done
+            exit 1
+          fi
+
+          echo "All Rust versions are consistent: ${versions[devbox]}"
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
