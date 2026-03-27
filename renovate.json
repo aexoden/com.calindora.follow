@@ -5,7 +5,11 @@
     {
       "groupName": "Rust toolchain",
       "groupSlug": "rust-toolchain",
-      "matchPackageNames": ["cargo", "clippy", "rustc", "rustfmt"]
+      "matchPackageNames": ["cargo", "clippy", "rust", "rustc", "rustfmt"]
+    },
+    {
+      "groupName": "Node.js",
+      "matchPackageNames": ["node", "nodejs"]
     }
   ]
 }
