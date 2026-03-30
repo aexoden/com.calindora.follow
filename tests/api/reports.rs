@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use com_calindora_follow::util::TIMESTAMP_FORMAT;
-use hmac::{Hmac, Mac};
+use hmac::{Hmac, KeyInit, Mac};
 use sha2::Sha256;
 use sqlx::types::BigDecimal;
 use time::OffsetDateTime;
