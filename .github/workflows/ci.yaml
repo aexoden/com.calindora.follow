@@ -20,24 +20,39 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Check Rust versions
+      - name: Check versions
         run: |
           set -euo pipefail
 
-          declare -A versions
-          versions[devbox]=$(jq -r '.packages.rustc' devbox.json)
-          versions[docker]=$(grep -oP '(?<=FROM rust:)[^-]+' Dockerfile)
+          check_version() {
+            local name="$1"
+            shift
 
-          unique=$(printf '%s\n' "${versions[@]}" | sort -u | wc -l)
-          if [[ "$unique" -ne 1 ]]; then
-            echo "::error::Rust version mismatch detected:"
-            for source in "${!versions[@]}"; do
-              echo "  ${source}: ${versions[$source]}"
+            declare -A versions
+            while [[ $# -gt 0 ]]; do
+              versions["$1"]="$2"
+              shift 2
             done
-            exit 1
-          fi
 
-          echo "All Rust versions are consistent: ${versions[devbox]}"
+            unique=$(printf '%s\n' "${versions[@]}" | sort -u | wc -l)
+            if [[ "$unique" -ne 1 ]]; then
+              echo "::error::${name} version mismatch detected:"
+              for source in "${!versions[@]}"; do
+                echo "  ${source}: ${versions[$source]}"
+              done
+              exit 1
+            fi
+
+            echo "All ${name} versions are consistent: ${versions[devbox]}"
+          }
+
+          check_version "Rust" \
+            devbox "$(jq -r '.packages.rustc' devbox.json)" \
+            docker "$(grep -oP '(?<=FROM rust:)[^-]+' Dockerfile)"
+
+          check_version "Node.js" \
+            devbox "$(jq -r '.packages."nodejs-slim".version' devbox.json)" \
+            docker "$(grep -oP '(?<=FROM node:)[^-]+' Dockerfile)"
 
   lint:
     name: Lint
