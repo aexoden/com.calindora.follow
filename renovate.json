@@ -7,7 +7,7 @@
   },
   "packageRules": [
     {
-      "matchUpdateTypes" : ["minor", "patch"],
+      "matchUpdateTypes": ["minor", "patch"],
       "matchCurrentVersion": "!/^0/",
       "automerge": true
     },
@@ -20,5 +20,6 @@
       "groupName": "Node.js",
       "matchPackageNames": ["node", "nodejs"]
     }
-  ]
+  ],
+  "platformAutomerge": false
 }
