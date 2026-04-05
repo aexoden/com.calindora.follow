@@ -43,12 +43,12 @@ jobs:
               exit 1
             fi
 
-            echo "All ${name} versions are consistent: ${versions[devbox]}"
+            echo "All ${name} versions are consistent: ${versions[docker]}"
           }
 
           check_version "Rust" \
-            devbox "$(jq -r '.packages.rustc' devbox.json)" \
-            docker "$(grep -oP '(?<=FROM rust:)[^-]+' Dockerfile)"
+            docker "$(grep -oP '(?<=FROM rust:)[^-]+' Dockerfile)" \
+            rust_toolchain "$(grep -oP '(?<=channel = ")[^"]+' rust-toolchain.toml)"
 
           check_version "Node.js" \
             devbox "$(jq -r '.packages.nodejs' devbox.json)" \
