@@ -5,9 +5,7 @@
     "PGPORT": "5433"
   },
   "packages": {
-    "cargo": "1.94.0",
     "cargo-deny": "0.19.0",
-    "clippy": "1.94.0",
     "nodejs": "25.8.1",
     "openssl": {
       "version": "3.6.0",
@@ -16,12 +14,11 @@
     "pkg-config": "0.29.2",
     "postgresql": "17.9",
     "pre-commit": "4.5.1",
-    "rustc": "1.94.0",
-    "rustfmt": "1.94.0",
+    "rustup": "1.28.2",
     "sqlx-cli": "0.8.6"
   },
   "shell": {
-    "init_hook": ["cargo fetch", "pre-commit install"],
+    "init_hook": ["rustup toolchain install", "cargo fetch", "pre-commit install"],
     "scripts": {
       "build-docs": "cargo doc",
       "start": "cargo run",
