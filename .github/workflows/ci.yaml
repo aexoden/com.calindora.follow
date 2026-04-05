@@ -81,6 +81,11 @@ jobs:
       - name: Check Rust dependencies for security vulnerabilities
         run: devbox run -- cargo deny check
 
+      # pnpm currently entirely skips resolution during install if a lockfile is present. As a result, peer dependencies
+      # are not checked at all. To ensure those are enforced, we first run a separate install command with no lockfile.
+      - name: Check peer dependencies
+        run: devbox run -- bash -c "cd frontend && pnpm install --no-lockfile --strict-peer-dependencies"
+
       - name: Install frontend dependencies
         run: devbox run -- bash -c "cd frontend && pnpm install --frozen-lockfile"
 

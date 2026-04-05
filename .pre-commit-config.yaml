@@ -58,6 +58,13 @@ repos:
   # TypeScript formatting, linting, and type checking
   - repo: local
     hooks:
+      - id: pnpm-peer-dependencies
+        name: pnpm peer dependencies check
+        description: Check that pnpm peer dependencies are satisfied
+        entry: devbox run -- bash -c "cd frontend && pnpm install --no-lockfile --strict-peer-dependencies"
+        language: system
+        pass_filenames: false
+
       - id: pnpm-lock
         name: pnpm lockfile check
         description: Check that pnpm-lock.yaml is up to date
