@@ -53,6 +53,7 @@ jobs:
           check_version "Node.js" \
             devbox "$(jq -r '.packages.nodejs' devbox.json)" \
             docker "$(grep -oP '(?<=FROM node:)[^-]+' Dockerfile)"
+            package_json "$(jq -r '.engines.node' frontend/package.json | sed 's/[>=]//g')"
 
   lint:
     name: Lint
