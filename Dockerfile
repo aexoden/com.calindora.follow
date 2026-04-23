@@ -32,7 +32,7 @@ COPY . .
 RUN touch src/main.rs src/lib.rs && cargo build --release --locked
 
 # Build the runtime image
-FROM debian:stable-slim@sha256:99fc6d2a0882fcbcdc452948d2d54eab91faafc7db037df82425edcdcf950e1f AS runtime
+FROM debian:stable-slim@sha256:8f0c555de6a2f9c2bda1b170b67479d11f7f5e3b66bb4a7a1d8843361c9dd3ff AS runtime
 
 RUN useradd -m appuser
 
