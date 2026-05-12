@@ -11,12 +11,5 @@ allow = [
   "Zlib",
 ]
 
-[[licenses.clarify]]
-name = "ring"
-expression = "MIT AND ISC AND OpenSSL"
-license-files = [
-  { path = "LICENSE", hash = 3171872035 }  # 0xbd0eed23
-]
-
 [bans]
 multiple-versions = "allow"
