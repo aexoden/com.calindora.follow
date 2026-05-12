@@ -218,8 +218,8 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
         },
         {
             refreshInterval: POLLING_INTERVAL,
-            revalidateOnFocus: false,
-            revalidateOnReconnect: false,
+            revalidateOnFocus: true,
+            revalidateOnReconnect: true,
             dedupingInterval: POLLING_INTERVAL - 500,
             onError: (error) => {
                 if (!(error instanceof ApiError) || error.status !== 429) {

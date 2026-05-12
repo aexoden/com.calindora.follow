@@ -19,6 +19,7 @@ const API_BASE_URL = getApiBaseUrl();
 
 const api = axios.create({
     baseURL: API_BASE_URL,
+    timeout: 15000,
 });
 
 class ConfigService {
