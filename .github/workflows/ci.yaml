@@ -79,7 +79,7 @@ jobs:
         run: devbox run -- cargo test --workspace --all-features
 
       - name: Check Rust dependencies for security vulnerabilities
-        run: devbox run -- cargo deny check
+        run: devbox run -- cargo deny check bans licenses sources
 
       # pnpm currently entirely skips resolution during install if a lockfile is present. As a result, peer dependencies
       # are not checked at all. To ensure those are enforced, we first run a separate install command with no lockfile.
