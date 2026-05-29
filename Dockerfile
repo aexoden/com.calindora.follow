@@ -1,12 +1,12 @@
 # Build the frontend
-FROM node:25.8.2-slim@sha256:71be4054ee7a5fc8d0b2a66060705988b09a782025d70ba9318b29ff1a931fc0 AS frontend-builder
+FROM ghcr.io/pnpm/pnpm:11.1.2@sha256:de5cee20a512590d32f082da5c95bbd287daa6a0b1e1062bccbd0b3bcdb7ddc2 AS frontend-builder
 
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
 
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/pnpm-lock.yaml frontend/pnpm-workspace.yaml ./
-RUN npm install corepack --global --force && corepack enable && pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 COPY frontend/ ./
 RUN pnpm run build
