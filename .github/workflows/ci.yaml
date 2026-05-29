@@ -50,10 +50,10 @@ jobs:
             docker "$(grep -oP '(?<=FROM rust:)[^-]+' Dockerfile)" \
             rust_toolchain "$(grep -oP '(?<=channel = ")[^"]+' rust-toolchain.toml)"
 
-          check_version "Node.js" \
-            devbox "$(jq -r '.packages.nodejs' devbox.json)" \
-            docker "$(grep -oP '(?<=FROM node:)[^-]+' Dockerfile)" \
-            package_json "$(jq -r '.engines.node' frontend/package.json)"
+          check_version "pnpm" \
+            devbox "$(jq -r '.packages.pnpm' devbox.json)" \
+            docker "$(grep -oP '(?<=FROM ghcr.io/pnpm/pnpm:)[^ @]+' Dockerfile | head -n 1)" \
+            package_json "$(jq -r '.devEngines.packageManager.version' frontend/package.json | sed 's/[>=]//g')"
 
   lint:
     name: Lint
@@ -81,10 +81,8 @@ jobs:
       - name: Check Rust dependencies for security vulnerabilities
         run: devbox run -- cargo deny check bans licenses sources
 
-      # pnpm currently entirely skips resolution during install if a lockfile is present. As a result, peer dependencies
-      # are not checked at all. To ensure those are enforced, we first run a separate install command with no lockfile.
       - name: Check peer dependencies
-        run: devbox run -- bash -c "cd frontend && pnpm install --no-lockfile --strict-peer-dependencies"
+        run: devbox run -- bash -c "cd frontend && pnpm peers check"
 
       - name: Install frontend dependencies
         run: devbox run -- bash -c "cd frontend && pnpm install --frozen-lockfile"
