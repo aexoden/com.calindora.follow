@@ -62,7 +62,7 @@ repos:
       - id: pnpm-peer-dependencies
         name: pnpm peer dependencies check
         description: Check that pnpm peer dependencies are satisfied
-        entry: devbox run -- bash -c "cd frontend && pnpm install --no-lockfile --strict-peer-dependencies"
+        entry: devbox run -- bash -c "cd frontend && pnpm peers check"
         language: system
         pass_filenames: false
 
