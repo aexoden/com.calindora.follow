@@ -10,7 +10,7 @@
       "outputs": ["out", "dev"]
     },
     "pkg-config": "0.29.2",
-    "pnpm": "11.1.2",
+    "pnpm": "11.5.3",
     "postgresql": "17.10",
     "pre-commit": "4.5.1",
     "rustup": "1.29.0",
