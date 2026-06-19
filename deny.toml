@@ -1,3 +1,8 @@
+[advisories]
+ignore = [
+  { id = "RUSTSEC-2026-0173", reason = "proc-macro-erro2 is a transitive dependency through validator_derive. It should be replaced whenever validator_derive makes its next release." },
+]
+
 [licenses]
 allow = [
   "Apache-2.0",
