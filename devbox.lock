@@ -50,8 +50,8 @@
       }
     },
     "github:NixOS/nixpkgs/nixpkgs-unstable": {
-      "last_modified": "2026-06-06T12:12:42Z",
-      "resolved": "github:NixOS/nixpkgs/cbb5cf358f50aa6acc9efd6113b7bcfbc352cd73?lastModified=1780747962&narHash=sha256-IX7G1dlKrOqPOImfbo7ADDfV5yU1%2Bj%2BMRChI3TL4tAA%3D"
+      "last_modified": "2026-06-16T10:57:20Z",
+      "resolved": "github:NixOS/nixpkgs/3e41b24abd260e8f71dbe2f5737d24122f972158?lastModified=1781607440&narHash=sha256-rxO%2Buc%2FKFbSJp%2BpgyXRuAX6QlG9hJdnt0BXpEQRXY%2BU%3D"
     },
     "glibcLocales@latest": {
       "last_modified": "2026-05-21T08:15:18Z",
@@ -338,9 +338,9 @@
       }
     },
     "postgresql@17.10": {
-      "last_modified": "2026-06-01T17:55:45Z",
+      "last_modified": "2026-06-14T16:21:05Z",
       "plugin_version": "0.0.2",
-      "resolved": "github:NixOS/nixpkgs/4df1b885d76a54e1aa1a318f8d16fd6005b6401f#postgresql",
+      "resolved": "github:NixOS/nixpkgs/9eac87a12312b8f60dd52e1c6e1a265f6fc7f5fc#postgresql",
       "source": "devbox-search",
       "version": "17.10",
       "systems": {
@@ -357,6 +357,14 @@
               "default": true
             },
             {
+              "name": "plpython3",
+              "path": "/nix/store/x8kr0c530y07ml1f2k2q1h70j2bi5ndm-postgresql-17.10-plpython3"
+            },
+            {
+              "name": "dev",
+              "path": "/nix/store/y2yfqp710f5ggzj972wvdw27c4465g9b-postgresql-17.10-dev"
+            },
+            {
               "name": "jit",
               "path": "/nix/store/jvvc8129hqsxvwxdvhgz8jhsajbyci9s-postgresql-17.10-jit"
             },
@@ -365,24 +373,16 @@
               "path": "/nix/store/jfdxbynhcf8a69s2b9k2sm0yicdy9chb-postgresql-17.10-plperl"
             },
             {
-              "name": "plpython3",
-              "path": "/nix/store/x8kr0c530y07ml1f2k2q1h70j2bi5ndm-postgresql-17.10-plpython3"
-            },
-            {
               "name": "pltcl",
               "path": "/nix/store/xnqihgavm8j2p3bxrhx21v0cr4w4bvyq-postgresql-17.10-pltcl"
             },
             {
-              "name": "lib",
-              "path": "/nix/store/chrd4xzfvh20skzq21p5q96cm1hwsr91-postgresql-17.10-lib"
-            },
-            {
-              "name": "dev",
-              "path": "/nix/store/y2yfqp710f5ggzj972wvdw27c4465g9b-postgresql-17.10-dev"
-            },
-            {
               "name": "doc",
               "path": "/nix/store/rbd7809q978mm98d2ah6q06hh1fak4g3-postgresql-17.10-doc"
+            },
+            {
+              "name": "lib",
+              "path": "/nix/store/chrd4xzfvh20skzq21p5q96cm1hwsr91-postgresql-17.10-lib"
             }
           ],
           "store_path": "/nix/store/k5mjkij9d9fcikm1pshcads63fsyf08r-postgresql-17.10"
@@ -404,28 +404,28 @@
               "path": "/nix/store/dbbqlaba1d5db0l4a5xlgzvkk16bb1ql-postgresql-17.10-debug"
             },
             {
-              "name": "dev",
-              "path": "/nix/store/ckkjpnmpd0lgs28bhq76ffbknkbw0r2l-postgresql-17.10-dev"
-            },
-            {
-              "name": "jit",
-              "path": "/nix/store/08a4srs7r0mskz9qnzd00h5h00008v4q-postgresql-17.10-jit"
-            },
-            {
               "name": "lib",
               "path": "/nix/store/bs4ds2zwwfjnp2bz2nqpbm3jc1xw2f76-postgresql-17.10-lib"
+            },
+            {
+              "name": "plperl",
+              "path": "/nix/store/qrwc6i1vnfhl95dy5hq9172429yf0i4w-postgresql-17.10-plperl"
             },
             {
               "name": "plpython3",
               "path": "/nix/store/xzhgi5yphr8awiw5ji2nmqdzqxdjshqx-postgresql-17.10-plpython3"
             },
             {
+              "name": "dev",
+              "path": "/nix/store/ckkjpnmpd0lgs28bhq76ffbknkbw0r2l-postgresql-17.10-dev"
+            },
+            {
               "name": "doc",
               "path": "/nix/store/srbnmzjyc6fq3bp33lxv7185d85g44bg-postgresql-17.10-doc"
             },
             {
-              "name": "plperl",
-              "path": "/nix/store/qrwc6i1vnfhl95dy5hq9172429yf0i4w-postgresql-17.10-plperl"
+              "name": "jit",
+              "path": "/nix/store/08a4srs7r0mskz9qnzd00h5h00008v4q-postgresql-17.10-jit"
             },
             {
               "name": "pltcl",
@@ -451,10 +451,6 @@
               "path": "/nix/store/3f6llql2ck6q7gnnyz0ysrrwkv2gghky-postgresql-17.10-dev"
             },
             {
-              "name": "doc",
-              "path": "/nix/store/1235f75980ib2z42isq8w00css1n4f66-postgresql-17.10-doc"
-            },
-            {
               "name": "jit",
               "path": "/nix/store/sax9v31mpzjxngi20jwfhy32hn1d1anm-postgresql-17.10-jit"
             },
@@ -469,6 +465,10 @@
             {
               "name": "pltcl",
               "path": "/nix/store/s0flr58ascaiv0mlvwfgq2gmpzgy277a-postgresql-17.10-pltcl"
+            },
+            {
+              "name": "doc",
+              "path": "/nix/store/1235f75980ib2z42isq8w00css1n4f66-postgresql-17.10-doc"
             },
             {
               "name": "plperl",
@@ -494,16 +494,8 @@
               "path": "/nix/store/lfgkjigmsr1pyyyf42d5ilnc003bjxn7-postgresql-17.10-debug"
             },
             {
-              "name": "dev",
-              "path": "/nix/store/2y8a47fzhkibnfy5lzrv16ylj5rn2pj7-postgresql-17.10-dev"
-            },
-            {
-              "name": "jit",
-              "path": "/nix/store/phskfynzln3q5qhc1m0i2g7n585129yn-postgresql-17.10-jit"
-            },
-            {
-              "name": "lib",
-              "path": "/nix/store/h0mwgi47x8cmwyfqgbi3spsyr8hwidn0-postgresql-17.10-lib"
+              "name": "doc",
+              "path": "/nix/store/c8wad1x0pmvysnfkz5d9rcpb872qc2j7-postgresql-17.10-doc"
             },
             {
               "name": "plperl",
@@ -514,8 +506,16 @@
               "path": "/nix/store/wy8i0s38mq87j1cbq69i950rb26z7pz1-postgresql-17.10-plpython3"
             },
             {
-              "name": "doc",
-              "path": "/nix/store/c8wad1x0pmvysnfkz5d9rcpb872qc2j7-postgresql-17.10-doc"
+              "name": "dev",
+              "path": "/nix/store/2y8a47fzhkibnfy5lzrv16ylj5rn2pj7-postgresql-17.10-dev"
+            },
+            {
+              "name": "jit",
+              "path": "/nix/store/phskfynzln3q5qhc1m0i2g7n585129yn-postgresql-17.10-jit"
+            },
+            {
+              "name": "lib",
+              "path": "/nix/store/h0mwgi47x8cmwyfqgbi3spsyr8hwidn0-postgresql-17.10-lib"
             },
             {
               "name": "pltcl",
