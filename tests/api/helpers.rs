@@ -59,7 +59,7 @@ impl TestApplication {
         reqwest::Client::new()
             .post(format!(
                 "{}/api/v1/devices/{api_key}/reports",
-                &self.base_url
+                self.base_url
             ))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
