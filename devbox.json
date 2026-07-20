@@ -11,7 +11,7 @@
     },
     "pkg-config": "0.29.2",
     "pnpm": "11.9.0",
-    "postgresql": "17.10",
+    "postgresql": "18.4",
     "pre-commit": "4.5.1",
     "rustup": "1.29.0",
     "sqlx-cli": "0.8.6"
