@@ -43,7 +43,7 @@ tracing-actix-web = "=0.7.22"
 tracing-bunyan-formatter = "=0.3.10"
 tracing-log = "=0.2.0"
 tracing-subscriber = { version = "=0.3.23", features = ["env-filter"] }
-uuid = { version = "=1.23.5", features = ["serde"] }
+uuid = { version = "=1.24.0", features = ["serde"] }
 validator = { version = "=0.20.0", features = ["derive"] }
 
 [dev-dependencies]
