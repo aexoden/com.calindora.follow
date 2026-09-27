@@ -1,5 +1,4 @@
 import { memo, useMemo, useState, useEffect } from "react";
-import { formatDistance } from "date-fns";
 import { useFollowStore, type ColorMode, DEFAULT_PRUNE_THRESHOLD } from "../store/followStore";
 import { useToast } from "../hooks/useToast";
 import { Dialog, DialogPanel, DialogTitle, Switch } from "@headlessui/react";
@@ -18,6 +17,7 @@ import {
     MdDeviceHub,
     MdPublic,
     MdLocationOn,
+    MdWarningAmber,
 } from "react-icons/md";
 import ColorLegend from "./ColorLegend";
 
@@ -30,6 +30,9 @@ const TIME_RANGE_OPTIONS = [
     { label: "14 days", value: 14 * 24 * 60 * 60 * 1000 },
     { label: "30 days", value: 30 * 24 * 60 * 60 * 1000 },
 ];
+
+// Reports submitted more than this long after they were recorded are flagged as delayed
+const DELAY_THRESHOLD = 30 * 1000; // 30 seconds
 
 // Types
 interface StatusPanelProps {
@@ -51,8 +54,22 @@ interface FormattedValues {
     bearingText: string;
     formattedTime: string;
     formattedDate: string;
-    delayText: string;
+    delayText: string | null;
 }
+
+// Helpers
+const formatDelay = (ms: number) => {
+    const totalSeconds = Math.round(ms / 1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (days > 0) return `${days.toString()}d ${hours.toString()}h`;
+    if (hours > 0) return `${hours.toString()}h ${minutes.toString()}m`;
+    if (minutes > 0) return `${minutes.toString()}m ${seconds.toString()}s`;
+    return `${seconds.toString()}s`;
+};
 
 // Sub-components
 const ResetButton = memo(
@@ -257,6 +274,12 @@ const MobileHeader = ({
             </h2>
             <p className="text-sm text-gray-500">
                 {formattedValues ? formattedValues.formattedTime : "Adjust time range"}
+                {formattedValues?.delayText && (
+                    <span className="ml-1.5 inline-flex items-center font-medium text-amber-600">
+                        <MdWarningAmber className="mr-0.5 h-4 w-4" />
+                        {formattedValues.delayText} delay
+                    </span>
+                )}
             </p>
         </div>
 
@@ -500,7 +523,15 @@ const TimeCard = ({
             </div>
             <div className="text-sm text-gray-500">{formattedValues.formattedDate}</div>
         </div>
-        {formattedValues.delayText && <div className="mt-1 text-sm text-amber-600">{formattedValues.delayText}</div>}
+        {formattedValues.delayText && (
+            <div className="mt-2 flex items-start rounded-md bg-amber-50 p-2 text-sm text-amber-700">
+                <MdWarningAmber className="mt-0.5 mr-1.5 h-4 w-4 shrink-0 text-amber-500" />
+                <span>
+                    Delayed by <span className="font-semibold">{formattedValues.delayText}</span>. The device may be
+                    catching up after losing its connection.
+                </span>
+            </div>
+        )}
     </div>
 );
 
@@ -789,10 +820,8 @@ export default function StatusPanel({
             year: "numeric",
         });
 
-        let delayText = "";
-        if (submitTimestamp && submitTimestamp.getTime() - timestamp.getTime() > 15000) {
-            delayText = `(update delayed ${formatDistance(submitTimestamp, timestamp, { addSuffix: false })})`;
-        }
+        const delay = submitTimestamp ? submitTimestamp.getTime() - timestamp.getTime() : 0;
+        const delayText = delay > DELAY_THRESHOLD ? formatDelay(delay) : null;
 
         const bearing = lastReport.bearing;
         const bearingText =
