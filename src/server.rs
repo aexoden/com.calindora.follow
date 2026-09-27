@@ -136,9 +136,7 @@ fn run(listener: TcpListener, db_pool: PgPool, settings: Settings) -> std::io::R
             .service(crate::routes::api::post_report)
             .service(actix_files::Files::new("/static", "./static").index_file("index.html"))
             .default_service(web::route().to(|| async {
-                NamedFile::open_async("./static/app/index.html")
-                    .await
-                    .map_err(error::ErrorInternalServerError)
+                NamedFile::open("./static/app/index.html").map_err(error::ErrorInternalServerError)
             }))
     })
     .listen(listener)?
