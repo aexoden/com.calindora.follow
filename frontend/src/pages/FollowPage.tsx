@@ -15,6 +15,8 @@ import { useJsApiLoader } from "@react-google-maps/api";
 import LoadingIndicator, { type LoadingStep } from "../components/LoadingIndicator";
 
 const POLLING_INTERVAL = 5000; // 5 seconds
+const MAX_POLLING_RETRY_DELAY = 30000; // 30 seconds
+const POLLING_ERROR_TOAST_ID = "polling-error";
 const REPORT_LIMIT = 1000;
 const PRUNE_INTERVAL = 60000; // 1 minute
 
@@ -226,10 +228,21 @@ export default function FollowPage({ googleMapsApiKey }: FollowPageProps) {
                     toast.warning(
                         "Error refreshing location data",
                         error instanceof Error ? error.message : "Unknown error",
+                        { id: POLLING_ERROR_TOAST_ID },
                     );
                 }
             },
+            // Never give up retrying: while the key is in an error state, SWR's refreshInterval skips
+            // fetching, so this retry loop is the only thing that recovers polling after a connection
+            // drop. SWR itself pauses retries while the page is hidden or offline and resumes on
+            // focus or reconnect.
+            onErrorRetry: (_error, _key, _config, revalidate, opts) => {
+                const delay = Math.min(POLLING_INTERVAL * 2 ** (opts.retryCount - 1), MAX_POLLING_RETRY_DELAY);
+                setTimeout(() => void revalidate(opts), delay);
+            },
             onSuccess: (data) => {
+                toast.dismiss(POLLING_ERROR_TOAST_ID);
+
                 if (data.length > 0) {
                     addReports(data);
                     const lastReport = data[data.length - 1];
