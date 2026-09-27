@@ -1,2 +1,5 @@
 [env]
 RUST_BIGDECIMAL_FMT_EXPONENTIAL_LOWER_THRESHOLD = "12"
+
+[registry]
+global-min-publish-age = "7 days"
