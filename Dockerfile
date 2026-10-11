@@ -1,5 +1,5 @@
 # Build the frontend
-FROM ghcr.io/pnpm/pnpm:12.7.0@sha256:cf5d993f730e3afc2fb1eeb99bc4a0cb0d310a93878903a747ad3da552ed2c29 AS frontend-builder
+FROM ghcr.io/pnpm/pnpm:12.12.0@sha256:dcbefd9eba984401daa9bd22e6d7b232c0894336e326a8007110de6436899423 AS frontend-builder
 
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
