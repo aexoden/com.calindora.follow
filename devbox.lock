@@ -525,51 +525,51 @@
         }
       }
     },
-    "sqlx-cli@0.8.6": {
-      "last_modified": "2026-05-21T08:15:18Z",
-      "resolved": "github:NixOS/nixpkgs/4a29d733e8a7d5b824c3d8c958a946a9867b3eb2#sqlx-cli",
+    "sqlx-cli@0.9.0": {
+      "last_modified": "2026-10-19T15:20:57Z",
+      "resolved": "github:NixOS/nixpkgs/682ba80136e2c8dacd6b8900f578a72329458901#sqlx-cli",
       "source": "devbox-search",
-      "version": "0.8.6",
+      "version": "0.9.0",
       "systems": {
         "aarch64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/5icfnqhb8mbdmcfpq2jzj2l6hyca26mb-sqlx-cli-0.8.6",
+              "path": "/nix/store/k2qc5qvmbzqn5pbp9i7lpdbfd6q0jnvq-sqlx-cli-0.9.0",
               "default": true
             }
           ],
-          "store_path": "/nix/store/5icfnqhb8mbdmcfpq2jzj2l6hyca26mb-sqlx-cli-0.8.6"
+          "store_path": "/nix/store/k2qc5qvmbzqn5pbp9i7lpdbfd6q0jnvq-sqlx-cli-0.9.0"
         },
         "aarch64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/jxgd3n2rs71r28b0izf66g3ys2mq86q9-sqlx-cli-0.8.6",
+              "path": "/nix/store/spf4h9iahkdzm2cmd3z9qbaqdxycf53s-sqlx-cli-0.9.0",
               "default": true
             }
           ],
-          "store_path": "/nix/store/jxgd3n2rs71r28b0izf66g3ys2mq86q9-sqlx-cli-0.8.6"
+          "store_path": "/nix/store/spf4h9iahkdzm2cmd3z9qbaqdxycf53s-sqlx-cli-0.9.0"
         },
         "x86_64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/cgz0zaiky83f5zj9gjxjalqj82qdyj4c-sqlx-cli-0.8.6",
+              "path": "/nix/store/i98djias3pmzkdrqdgdqs2l6pvb5r83p-sqlx-cli-0.9.0",
               "default": true
             }
           ],
-          "store_path": "/nix/store/cgz0zaiky83f5zj9gjxjalqj82qdyj4c-sqlx-cli-0.8.6"
+          "store_path": "/nix/store/i98djias3pmzkdrqdgdqs2l6pvb5r83p-sqlx-cli-0.9.0"
         },
         "x86_64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/bhwi716qa64gsdzxzgnr4yqmv6k5a9yi-sqlx-cli-0.8.6",
+              "path": "/nix/store/hhwir1k5bbbdwkh035jviy8rh6s9sz67-sqlx-cli-0.9.0",
               "default": true
             }
           ],
-          "store_path": "/nix/store/bhwi716qa64gsdzxzgnr4yqmv6k5a9yi-sqlx-cli-0.8.6"
+          "store_path": "/nix/store/hhwir1k5bbbdwkh035jviy8rh6s9sz67-sqlx-cli-0.9.0"
         }
       }
     }
