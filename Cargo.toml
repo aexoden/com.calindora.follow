@@ -14,7 +14,7 @@ categories = ["visualization"]
 [dependencies]
 actix-cors = "=0.7.2"
 actix-files = "=0.7.0"
-actix-web = "=4.16.0"
+actix-web = "=4.17.0"
 actix-web-validator = "=7.0.0"
 anyhow = "=1.0.104"
 bigdecimal = { version = "=0.4.11", features = ["serde"] }
