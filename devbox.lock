@@ -486,42 +486,42 @@
         }
       }
     },
-    "rustup@1.29.1": {
-      "last_modified": "2026-10-08T19:21:32Z",
+    "rustup@1.29.2": {
+      "last_modified": "2026-10-24T11:44:37Z",
       "plugin_version": "0.0.1",
-      "resolved": "github:NixOS/nixpkgs/8edc0c72e3a38faf5434e40d1f19431125fe4b30#rustup",
+      "resolved": "github:NixOS/nixpkgs/d3b13ad75cc492690728f9307e443dec9ef9a20e#rustup",
       "source": "devbox-search",
-      "version": "1.29.1",
+      "version": "1.29.2",
       "systems": {
         "aarch64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/apvdnyx3si9li3dms2igganafx0gz4d8-rustup-1.29.1",
+              "path": "/nix/store/kfyhaqzqav5igarl3ka8sydcwqf2d6l0-rustup-1.29.2",
               "default": true
             }
           ],
-          "store_path": "/nix/store/apvdnyx3si9li3dms2igganafx0gz4d8-rustup-1.29.1"
+          "store_path": "/nix/store/kfyhaqzqav5igarl3ka8sydcwqf2d6l0-rustup-1.29.2"
         },
         "aarch64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/zhwwzhmgxyr5xkglzi8y50hbvfwys251-rustup-1.29.1",
+              "path": "/nix/store/wz7m1xikn0lz9jh288kn5l3yil93y31d-rustup-1.29.2",
               "default": true
             }
           ],
-          "store_path": "/nix/store/zhwwzhmgxyr5xkglzi8y50hbvfwys251-rustup-1.29.1"
+          "store_path": "/nix/store/wz7m1xikn0lz9jh288kn5l3yil93y31d-rustup-1.29.2"
         },
         "x86_64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/s5g2mz2zr526hfvzf7si9ghsd221nn6z-rustup-1.29.1",
+              "path": "/nix/store/qlbksf73w77ifwrr466r2f10g60kaz1d-rustup-1.29.2",
               "default": true
             }
           ],
-          "store_path": "/nix/store/s5g2mz2zr526hfvzf7si9ghsd221nn6z-rustup-1.29.1"
+          "store_path": "/nix/store/qlbksf73w77ifwrr466r2f10g60kaz1d-rustup-1.29.2"
         }
       }
     },
